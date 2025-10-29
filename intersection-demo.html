@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Tính toán thủ công vị trí phần tử (trước Intersection Observer)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 200vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.9);
+            margin: 50px 0;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .demo-section.visible {
+            background: rgba(76, 175, 80, 0.1);
+            border: 3px solid #4CAF50;
+            transform: scale(1.02);
+        }
+
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .demo-section p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .status-indicator h3 {
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .status-item {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .visible-text {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .hidden-text {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .scroll-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .spacer {
+            height: 100vh;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator">
+        <h3>📊 Trạng thái phần tử</h3>
+        <div id="status-list"></div>
+    </div>
+
+    <div class="scroll-info">
+        <div>Scroll Y: <span id="scroll-y">0</span>px</div>
+        <div>Window Height: <span id="window-height">0</span>px</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Demo: Tính toán thủ công vị trí phần tử</h1>
+            <p>Trước khi có Intersection Observer API, lập trình viên phải tự tính toán bằng cách sử dụng scroll event và getBoundingClientRect()</p>
+        </div>
+
+        <div class="spacer">
+            <div>Cuộn xuống để xem demo...</div>
+        </div>
+
+        <div class="demo-section" data-section="1">
+            <h2>📝 Phần 1: Giới thiệu</h2>
+            <p>Đây là phần đầu tiên. Hãy cuộn để xem cách tính toán vị trí hoạt động.</p>
+            <div class="code-block">
+// Cách tính toán thủ công trước đây:
+window.addEventListener('scroll', function() {
+    const element = document.querySelector('.demo-section');
+    const rect = element.getBoundingClientRect();
+    
+    // Kiểm tra xem phần tử có trong viewport không
+    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    
+    if (isVisible) {
+        console.log('Phần tử đang hiển thị!');
+    }
+});
+            </div>
+        </div>
+
+        <div class="demo-section" data-section="2">
+            <h2>⚙️ Phần 2: Cách hoạt động</h2>
+            <p>getBoundingClientRect() trả về vị trí của phần tử so với viewport.</p>
+            <div class="code-block">
+const rect = element.getBoundingClientRect();
+console.log({
+    top: rect.top,        // Khoảng cách từ đỉnh viewport
+    bottom: rect.bottom,  // Khoảng cách từ đáy viewport  
+    left: rect.left,      // Khoảng cách từ bên trái viewport
+    right: rect.right     // Khoảng cách từ bên phải viewport
+});
+            </div>
+        </div>
+
+        <div class="demo-section" data-section="3">
+            <h2>🎯 Phần 3: Logic kiểm tra</h2>
+            <p>Để kiểm tra phần tử có trong viewport, ta so sánh:</p>
+            <div class="code-block">
+// Phần tử hiển thị khi:
+// - Đỉnh phần tử < chiều cao cửa sổ (chưa cuộn hết)
+// - Đáy phần tử > 0 (chưa cuộn qua hết)
+
+const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+            </div>
+        </div>
+
+        <div class="demo-section" data-section="4">
+            <h2>🚀 Phần 4: Vấn đề hiệu suất</h2>
+            <p>Scroll event được gọi rất nhiều lần, gây ảnh hưởng hiệu suất.</p>
+            <div class="code-block">
+// Vấn đề: Scroll event được gọi liên tục
+window.addEventListener('scroll', function() {
+    // Code này chạy hàng trăm lần mỗi giây!
+    // Cần throttle hoặc debounce để tối ưu
+});
+            </div>
+        </div>
+
+        <div class="demo-section" data-section="5">
+            <h2>✨ Phần 5: Giải pháp hiện đại</h2>
+            <p>Intersection Observer API giải quyết tất cả vấn đề này!</p>
+            <div class="code-block">
+// Giải pháp hiện đại với Intersection Observer
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            console.log('Phần tử đang hiển thị!');
+        }
+    });
+});
+
+observer.observe(element);
+            </div>
+        </div>
+
+        <div class="spacer">
+            <div>🎉 Kết thúc demo!</div>
+        </div>
+    </div>
+
+    <script>
+        // Danh sách các phần tử cần theo dõi
+        const sections = document.querySelectorAll('.demo-section');
+        const statusList = document.getElementById('status-list');
+        const scrollYElement = document.getElementById('scroll-y');
+        const windowHeightElement = document.getElementById('window-height');
+
+        // Cập nhật thông tin scroll
+        function updateScrollInfo() {
+            scrollYElement.textContent = Math.round(window.scrollY);
+            windowHeightElement.textContent = window.innerHeight;
+        }
+
+        // Hàm kiểm tra phần tử có trong viewport không (cách thủ công)
+        function isElementInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0;
+        }
+
+        // Hàm cập nhật trạng thái hiển thị
+        function updateVisibilityStatus() {
+            let statusHTML = '';
+            
+            sections.forEach((section, index) => {
+                const isVisible = isElementInViewport(section);
+                const sectionNumber = section.dataset.section;
+      
+                if (isVisible) {
+                    section.classList.add('visible');
+                } else {
+                    section.classList.remove('visible');
+                }
+                
+                statusHTML += `
+                    <div class="status-item">
+                        Phần ${sectionNumber}: 
+                        <span class="${isVisible ? 'visible-text' : 'hidden-text'}">
+                            ${isVisible ? 'Hiển thị' : 'Ẩn'}
+                        </span>
+                    </div>
+                `;
+            });
+            
+            statusList.innerHTML = statusHTML;
+        }
+
+        // Throttle function để tối ưu hiệu suất
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+
+        // Gắn sự kiện scroll với throttle (100ms)
+        window.addEventListener('scroll', throttle(function() {
+            updateScrollInfo();
+            updateVisibilityStatus();
+        }, 100));
+
+        // Gắn sự kiện resize
+        window.addEventListener('resize', throttle(function() {
+            updateScrollInfo();
+            updateVisibilityStatus();
+        }, 100));
+
+        // Khởi tạo
+        updateScrollInfo();
+        updateVisibilityStatus();
+
+        // Log thông tin chi tiết khi scroll
+        window.addEventListener('scroll', throttle(function() {
+            console.log('=== Thông tin scroll ===');
+            console.log('Scroll Y:', window.scrollY);
+            console.log('Window Height:', window.innerHeight);
+            
+            sections.forEach((section, index) => {
+                const rect = section.getBoundingClientRect();
+                const isVisible = isElementInViewport(section);
+                
+                console.log(`Phần ${section.dataset.section}:`, {
+                    top: Math.round(rect.top),
+                    bottom: Math.round(rect.bottom),
+                    visible: isVisible
+                });
+            });
+        }, 200));
+    </script>
+</body>
+</html>

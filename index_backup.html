@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Box Model - Hướng dẫn chi tiết</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>CSS Box Model - Hướng dẫn chi tiết</h1>
+            <p>Hiểu rõ về Box Model và các thuộc tính của box trong CSS</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Khái niệm cơ bản -->
+            <section class="section">
+                <h2>1. Khái niệm cơ bản</h2>
+                <div class="concept-box">
+                    <p>Mỗi HTML element là một <strong>hộp (box)</strong>.</p>
+                    <p>Hộp có <strong>4 lớp (Box Model)</strong>:</p>
+                    <ul class="box-layers">
+                        <li><span class="layer content">Content box</span> → chứa nội dung (text, image).</li>
+                        <li><span class="layer padding">Padding box</span> → khoảng trống bao quanh content.</li>
+                        <li><span class="layer border">Border box</span> → viền bao quanh content + padding.</li>
+                        <li><span class="layer margin">Margin box</span> → khoảng trống bên ngoài border.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Demo Box Model -->
+            <section class="section">
+                <h2>Demo Box Model</h2>
+                <div class="box-model-demo">
+                    <div class="box-container">
+                        <div class="margin-box">
+                            <div class="border-box">
+                                <div class="padding-box">
+                                    <div class="content-box">
+                                        Content
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-labels">
+                        <div class="label margin-label">Margin</div>
+                        <div class="label border-label">Border</div>
+                        <div class="label padding-label">Padding</div>
+                        <div class="label content-label">Content</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hai thuộc tính chính -->
+            <section class="section">
+                <h2>2. Hai thuộc tính chính của box</h2>
+                
+                <div class="properties-grid">
+                    <div class="property-card">
+                        <h3>Box Size</h3>
+                        <ul>
+                            <li><strong>Intrinsic:</strong> Kích thước phụ thuộc nội dung.</li>
+                            <li><strong>Restricted:</strong> Bị giới hạn bởi CSS (width/height) hoặc bởi parent.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="property-card">
+                        <h3>Box Type</h3>
+                        <ul>
+                            <li><strong>Block-level box</strong></li>
+                            <li><strong>Inline-level box</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Block-level box -->
+            <section class="section">
+                <h2>Block-level box</h2>
+                <div class="demo-container">
+                    <div class="block-demo">
+                        <div class="block-box">Block Box 1</div>
+                        <div class="block-box">Block Box 2</div>
+                        <div class="block-box">Block Box 3</div>
+                    </div>
+                    <div class="demo-info">
+                        <h4>Đặc điểm:</h4>
+                        <ul>
+                            <li>Chiếm 100% chiều rộng của parent</li>
+                            <li>Chiều cao phụ thuộc nội dung (intrinsic)</li>
+                            <li>Xếp từ trên xuống dưới (top-to-bottom)</li>
+                            <li>Tham gia Block Formatting Context (BFC)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inline-level box -->
+            <section class="section">
+                <h2>Inline-level box</h2>
+                <div class="demo-container">
+                    <div class="inline-demo">
+                        <span class="inline-box">Inline Box 1</span>
+                        <span class="inline-box">Inline Box 2</span>
+                        <span class="inline-box">Inline Box 3</span>
+                        <span class="inline-box">Inline Box 4</span>
+                    </div>
+                    <div class="demo-info">
+                        <h4>Đặc điểm:</h4>
+                        <ul>
+                            <li>Hiển thị như chuỗi text (left → right, top → bottom)</li>
+                            <li>Tham gia Inline Formatting Context (IFC)</li>
+                            <li>Không áp dụng được trực tiếp width / height</li>
+                            <li>Không ảnh hưởng bởi vertical margins</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Box-sizing demo -->
+            <section class="section">
+                <h2>Box-sizing Demo</h2>
+                <div class="box-sizing-demo">
+                    <div class="demo-row">
+                        <h4>content-box (mặc định)</h4>
+                        <div class="box-sizing-container">
+                            <div class="box-content-box">
+                                <p>width = content + padding + border + margin</p>
+                                <p>Width: 200px + 20px padding + 4px border = 224px total</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-row">
+                        <h4>border-box</h4>
+                        <div class="box-sizing-container">
+                            <div class="box-border-box">
+                                <p>width đã bao gồm content + padding + border</p>
+                                <p>Width: 200px total (bao gồm padding và border)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tóm lại -->
+            <section class="section summary">
+                <h2>👉 Tóm lại:</h2>
+                <div class="summary-grid">
+                    <div class="summary-card block-summary">
+                        <h3>Block box</h3>
+                        <ul>
+                            <li>Chiếm toàn hàng</li>
+                            <li>Có BFC</li>
+                            <li>Width tính theo box-sizing</li>
+                        </ul>
+                    </div>
+                    <div class="summary-card inline-summary">
+                        <h3>Inline box</h3>
+                        <ul>
+                            <li>Chảy theo dòng text</li>
+                            <li>Chiều cao dựa vào line-height</li>
+                            <li>Không tính vertical margin/height</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

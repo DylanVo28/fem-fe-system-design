@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflow trong Browser Rendering Demo</title>
+    <link rel="stylesheet" href="reflow-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Reflow trong Browser Rendering</h1>
+            <p class="subtitle">Hiểu về quy trình render và tối ưu hiệu năng</p>
+        </header>
+
+        <!-- Render Pipeline Section -->
+        <section class="demo-section">
+            <h2>1. Quy trình xây dựng Render Tree</h2>
+            <div class="explanation">
+                <p><strong>Browser đọc HTML → DOM Tree</strong></p>
+                <p><strong>Đọc CSS → CSSOM Tree</strong></p>
+                <p><strong>Kết hợp DOM + CSSOM → Render Tree</strong></p>
+            </div>
+            
+            <div class="pipeline-demo">
+                <div class="pipeline-step">
+                    <div class="step-box html-step">
+                        <h3>HTML</h3>
+                        <div class="code-snippet">
+                            <code>&lt;div class="box"&gt;Content&lt;/div&gt;</code>
+                        </div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="step-box dom-step">
+                        <h3>DOM Tree</h3>
+                        <div class="tree-structure">
+                            <div class="node">div.box</div>
+                            <div class="node child">"Content"</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pipeline-step">
+                    <div class="step-box css-step">
+                        <h3>CSS</h3>
+                        <div class="code-snippet">
+                            <code>.box { width: 100px; height: 50px; }</code>
+                        </div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="step-box cssom-step">
+                        <h3>CSSOM Tree</h3>
+                        <div class="tree-structure">
+                            <div class="node">.box</div>
+                            <div class="node child">width: 100px</div>
+                            <div class="node child">height: 50px</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pipeline-step">
+                    <div class="step-box render-step">
+                        <h3>Render Tree</h3>
+                        <div class="tree-structure">
+                            <div class="node">div.box</div>
+                            <div class="node child">width: 100px</div>
+                            <div class="node child">height: 50px</div>
+                            <div class="node child">"Content"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reflow Definition Section -->
+        <section class="demo-section">
+            <h2>2. Reflow là gì?</h2>
+            <div class="explanation">
+                <p>Xảy ra khi DOM hoặc CSSOM bị thay đổi (JS, React, thêm node, đổi style)</p>
+                <p>Browser phải thực hiện 4 bước:</p>
+            </div>
+            
+            <div class="reflow-steps">
+                <div class="reflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Recalculate Style</h3>
+                        <p>CSS selectors, style tree</p>
+                    </div>
+                </div>
+                <div class="reflow-step cpu-heavy">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Layout Phase</h3>
+                        <p>Tính toán lại vị trí, kích thước (CPU bound, nặng)</p>
+                    </div>
+                </div>
+                <div class="reflow-step gpu-fast">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Paint Phase</h3>
+                        <p>Vẽ pixel lên màn hình (GPU, nhanh)</p>
+                    </div>
+                </div>
+                <div class="reflow-step gpu-fast">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Composite Phase</h3>
+                        <p>Sắp xếp các layer đúng thứ tự hiển thị</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CPU vs GPU Section -->
+        <section class="demo-section">
+            <h2>3. CPU vs GPU</h2>
+            <div class="explanation">
+                <p><strong>Reflow + Layout = CPU nặng</strong> → dễ block render thread nếu xảy ra nhiều</p>
+                <p><strong>Paint + Composite = GPU xử lý</strong> → nhanh, không block CPU</p>
+            </div>
+            
+            <div class="cpu-gpu-demo">
+                <div class="processor-box cpu-box">
+                    <h3>��️ CPU (Main Thread)</h3>
+                    <div class="cpu-tasks">
+                        <div class="task cpu-task">JavaScript Execution</div>
+                        <div class="task cpu-task">DOM Manipulation</div>
+                        <div class="task cpu-task heavy">Layout Calculation</div>
+                        <div class="task cpu-task heavy">Style Recalculation</div>
+                    </div>
+                    <div class="performance-indicator">
+                        <span class="label">Performance:</span>
+                        <span class="value slow">Chậm, Blocking</span>
+                    </div>
+                </div>
+                
+                <div class="processor-box gpu-box">
+                    <h3>🎮 GPU (Compositor Thread)</h3>
+                    <div class="gpu-tasks">
+                        <div class="task gpu-task">Pixel Painting</div>
+                        <div class="task gpu-task">Layer Compositing</div>
+                        <div class="task gpu-task">Transform Operations</div>
+                        <div class="task gpu-task">Opacity Changes</div>
+                    </div>
+                    <div class="performance-indicator">
+                        <span class="label">Performance:</span>
+                        <span class="value fast">Nhanh, Non-blocking</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Demo Section -->
+        <section class="demo-section">
+            <h2>4. Ví dụ hiệu năng - 2000 Rectangles</h2>
+            <div class="explanation">
+                <p><strong>Render 2000 rectangles:</strong></p>
+                <p>• Pipeline tối ưu (CSS transform: translateY) → GPU vẽ pixel → 60fps, CPU gần như 0%</p>
+                <p>• Pipeline không tối ưu (CSS margin-top) → CPU phải tính lại layout cho tất cả 2000 elements → nặng, lag</p>
+            </div>
+            
+            <div class="performance-demo">
+                <div class="demo-controls">
+                    <button id="startReflowDemo" class="demo-btn reflow-btn">🚫 Demo Reflow (Chậm)</button>
+                    <button id="startTransformDemo" class="demo-btn transform-btn">✅ Demo Transform (Nhanh)</button>
+                    <button id="stopDemo" class="demo-btn stop-btn">⏹️ Dừng</button>
+                </div>
+                
+                <div class="performance-metrics">
+                    <div class="metric">
+                        <span class="metric-label">FPS:</span>
+                        <span class="metric-value" id="fpsCounter">60</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">CPU Usage:</span>
+                        <span class="metric-value" id="cpuUsage">0%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Elements:</span>
+                        <span class="metric-value">2000</span>
+                    </div>
+                </div>
+                
+                <div class="animation-container" id="animationContainer">
+                    <!-- 2000 rectangles will be generated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Optimization Examples Section -->
+        <section class="demo-section">
+            <h2>5. Tối ưu hóa - Tránh Reflow</h2>
+            <div class="explanation">
+                <p><strong>Reflow = tốn kém nhất vì tính toán lại layout</strong></p>
+                <p>Tối ưu bằng cách hạn chế thay đổi layout và ưu tiên dùng transform, opacity</p>
+            </div>
+            
+            <div class="optimization-demo">
+                <div class="comparison">
+                    <div class="comparison-side bad-side">
+                        <h3>❌ Không tối ưu (Gây Reflow)</h3>
+                        <div class="code-example">
+                            <pre><code>// Thay đổi layout properties
+element.style.width = '200px';
+element.style.height = '100px';
+element.style.marginTop = '50px';
+element.style.padding = '20px';</code></pre>
+                        </div>
+                        <div class="impact">
+                            <span class="impact-label">Tác động:</span>
+                            <span class="impact-value bad">CPU nặng, Layout recalculation</span>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-side good-side">
+                        <h3>✅ Tối ưu (GPU Layer)</h3>
+                        <div class="code-example">
+                            <pre><code>// Sử dụng transform và opacity
+element.style.transform = 'translateY(50px)';
+element.style.opacity = '0.8';
+element.style.scale = '1.2';</code></pre>
+                        </div>
+                        <div class="impact">
+                            <span class="impact-label">Tác động:</span>
+                            <span class="impact-value good">GPU xử lý, 60fps</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Animation Demo -->
+        <section class="demo-section">
+            <h2>6. Demo tương tác - So sánh hiệu năng</h2>
+            <div class="interactive-demo">
+                <div class="demo-controls">
+                    <button id="animateReflow" class="demo-btn reflow-btn">Animate với Margin (Reflow)</button>
+                    <button id="animateTransform" class="demo-btn transform-btn">Animate với Transform</button>
+                    <button id="resetAnimation" class="demo-btn reset-btn">Reset</button>
+                </div>
+                
+                <div class="animation-comparison">
+                    <div class="animation-box">
+                        <h4>Reflow Animation</h4>
+                        <div class="demo-element reflow-element" id="reflowElement">Box 1</div>
+                        <div class="demo-element reflow-element" id="reflowElement2">Box 2</div>
+                        <div class="demo-element reflow-element" id="reflowElement3">Box 3</div>
+                    </div>
+                    
+                    <div class="animation-box">
+                        <h4>Transform Animation</h4>
+                        <div class="demo-element transform-element" id="transformElement">Box 1</div>
+                        <div class="demo-element transform-element" id="transformElement2">Box 2</div>
+                        <div class="demo-element transform-element" id="transformElement3">Box 3</div>
+                    </div>
+                </div>
+                
+                <div class="performance-comparison">
+                    <div class="perf-metric">
+                        <h4>Reflow Performance</h4>
+                        <div class="perf-bar">
+                            <div class="perf-fill reflow-perf" id="reflowPerf"></div>
+                        </div>
+                        <span class="perf-text" id="reflowText">Chậm</span>
+                    </div>
+                    
+                    <div class="perf-metric">
+                        <h4>Transform Performance</h4>
+                        <div class="perf-bar">
+                            <div class="perf-fill transform-perf" id="transformPerf"></div>
+                        </div>
+                        <span class="perf-text" id="transformText">Nhanh</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section class="demo-section summary">
+            <h2>📝 Tóm tắt</h2>
+            <div class="summary-content">
+                <div class="summary-point">
+                    <h3>Reflow = Tốn kém nhất</h3>
+                    <p>Khi DOM/CSS thay đổi, browser phải tính toán lại layout (nặng CPU)</p>
+                </div>
+                <div class="summary-point">
+                    <h3>Paint + Composite = Nhanh hơn</h3>
+                    <p>Chủ yếu GPU xử lý, không block CPU</p>
+                </div>
+                <div class="summary-point">
+                    <h3>Tối ưu Animation/Layout</h3>
+                    <p>Sử dụng transform/opacity để tránh reflow</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Performance monitoring
+        let animationId;
+        let startTime;
+        let frameCount = 0;
+        let isAnimating = false;
+
+        // Generate 2000 rectangles for performance demo
+        function generateRectangles() {
+            const container = document.getElementById('animationContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 2000; i++) {
+                const rect = document.createElement('div');
+                rect.className = 'performance-rect';
+                rect.style.left = Math.random() * 800 + 'px';
+                rect.style.top = Math.random() * 400 + 'px';
+                container.appendChild(rect);
+            }
+        }
+
+        // Reflow animation (using margin)
+        function animateReflow() {
+            const rects = document.querySelectorAll('.performance-rect');
+            let direction = 1;
+            
+            function animate() {
+                if (!isAnimating) return;
+                
+                rects.forEach(rect => {
+                    const currentMargin = parseInt(rect.style.marginTop) || 0;
+                    rect.style.marginTop = (currentMargin + direction * 2) + 'px';
+                });
+                
+                if (Math.abs(parseInt(rects[0].style.marginTop) || 0) > 100) {
+                    direction *= -1;
+                }
+                
+                updatePerformanceMetrics();
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        // Transform animation (GPU optimized)
+        function animateTransform() {
+            const rects = document.querySelectorAll('.performance-rect');
+            let direction = 1;
+            
+            function animate() {
+                if (!isAnimating) return;
+                
+                rects.forEach(rect => {
+                    const currentTransform = rect.style.transform || 'translateY(0px)';
+                    const currentY = parseInt(currentTransform.match(/-?\d+/) || [0])[0];
+                    rect.style.transform = `translateY(${currentY + direction * 2}px)`;
+                });
+                
+                if (Math.abs(parseInt(rects[0].style.transform.match(/-?\d+/) || [0])[0]) > 100) {
+                    direction *= -1;
+                }
+                
+                updatePerformanceMetrics();
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        // Update performance metrics
+        function updatePerformanceMetrics() {
+            frameCount++;
+            const currentTime = performance.now();
+            const elapsed = currentTime - startTime;
+            
+            if (elapsed >= 1000) {
+                const fps = Math.round((frameCount * 1000) / elapsed);
+                document.getElementById('fpsCounter').textContent = fps;
+                
+                // Simulate CPU usage based on animation type
+                const cpuUsage = isAnimating ? (document.querySelector('.reflow-btn').classList.contains('active') ? 85 : 15) : 0;
+                document.getElementById('cpuUsage').textContent = cpuUsage + '%';
+                
+                frameCount = 0;
+                startTime = currentTime;
+            }
+        }
+
+        // Interactive demo elements
+        function animateInteractiveReflow() {
+            const elements = ['reflowElement', 'reflowElement2', 'reflowElement3'];
+            elements.forEach((id, index) => {
+                const element = document.getElementById(id);
+                element.style.animation = 'none';
+                setTimeout(() => {
+                    element.style.animation = `reflowAnimation 2s ease-in-out infinite`;
+                }, index * 200);
+            });
+            
+            // Update performance indicator
+            document.getElementById('reflowPerf').style.width = '20%';
+            document.getElementById('reflowText').textContent = 'Chậm (CPU)';
+        }
+
+        function animateInteractiveTransform() {
+            const elements = ['transformElement', 'transformElement2', 'transformElement3'];
+            elements.forEach((id, index) => {
+                const element = document.getElementById(id);
+                element.style.animation = 'none';
+                setTimeout(() => {
+                    element.style.animation = `transformAnimation 2s ease-in-out infinite`;
+                }, index * 200);
+            });
+            
+            // Update performance indicator
+            document.getElementById('transformPerf').style.width = '90%';
+            document.getElementById('transformText').textContent = 'Nhanh (GPU)';
+        }
+
+        function resetAnimation() {
+            const allElements = document.querySelectorAll('.demo-element');
+            allElements.forEach(el => {
+                el.style.animation = 'none';
+            });
+            
+            // Reset performance indicators
+            document.getElementById('reflowPerf').style.width = '0%';
+            document.getElementById('transformPerf').style.width = '0%';
+            document.getElementById('reflowText').textContent = 'Tĩnh';
+            document.getElementById('transformText').textContent = 'Tĩnh';
+        }
+
+        // Event listeners
+        document.getElementById('startReflowDemo').addEventListener('click', function() {
+            if (isAnimating) return;
+            isAnimating = true;
+            startTime = performance.now();
+            frameCount = 0;
+            this.classList.add('active');
+            document.getElementById('startTransformDemo').classList.remove('active');
+            animateReflow();
+        });
+
+        document.getElementById('startTransformDemo').addEventListener('click', function() {
+            if (isAnimating) return;
+            isAnimating = true;
+            startTime = performance.now();
+            frameCount = 0;
+            this.classList.add('active');
+            document.getElementById('startReflowDemo').classList.remove('active');
+            animateTransform();
+        });
+
+        document.getElementById('stopDemo').addEventListener('click', function() {
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            document.querySelectorAll('.demo-btn').forEach(btn => btn.classList.remove('active'));
+        });
+
+        document.getElementById('animateReflow').addEventListener('click', animateInteractiveReflow);
+        document.getElementById('animateTransform').addEventListener('click', animateInteractiveTransform);
+        document.getElementById('resetAnimation').addEventListener('click', resetAnimation);
+
+        // Initialize
+        generateRectangles();
+        startTime = performance.now();
+    </script>
+</body>
+</html>

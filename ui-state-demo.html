@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI State Management Demo - Messenger</title>
+    <link rel="stylesheet" href="ui-state-demo.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧩 UI State Management Demo</h1>
+            <p>Ví dụ thực tế về normalization, search optimization và memory management</p>
+        </header>
+
+        <div class="demo-controls">
+            <button id="loadData">📊 Load Sample Data</button>
+            <button id="searchMessages">🔍 Search Messages</button>
+            <button id="showNormalized">📋 Show Normalized Data</button>
+            <button id="memoryTest">💾 Memory Management Test</button>
+        </div>
+
+        <div class="demo-sections">
+            <!-- Data Structure Comparison -->
+            <section class="demo-section">
+                <h2>📊 So sánh cấu trúc dữ liệu</h2>
+                <div class="comparison">
+                    <div class="data-structure">
+                        <h3>❌ Non-normalized (Chậm)</h3>
+                        <pre id="nonNormalizedData"></pre>
+                        <p class="performance">Tìm message: O(n*m) - Chậm!</p>
+                    </div>
+                    <div class="data-structure">
+                        <h3>✅ Normalized (Nhanh)</h3>
+                        <pre id="normalizedData"></pre>
+                        <p class="performance">Tìm message: O(1) - Nhanh!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search Optimization -->
+            <section class="demo-section">
+                <h2>🔍 Search Optimization với Inverted Index</h2>
+                <div class="search-demo">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tin nhắn...">
+                    <button id="performSearch">Tìm kiếm</button>
+                    <div id="searchResults"></div>
+                    <div class="index-info">
+                        <h4>Inverted Index:</h4>
+                        <pre id="invertedIndex"></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Memory Management -->
+            <section class="demo-section">
+                <h2>💾 Memory Management</h2>
+                <div class="memory-demo">
+                    <div class="storage-info">
+                        <h4>Storage Types:</h4>
+                        <ul>
+                            <li><strong>Session Storage:</strong> <span id="sessionInfo">Tạm thời</span></li>
+                            <li><strong>Local Storage:</strong> <span id="localInfo">Persistent</span></li>
+                            <li><strong>IndexedDB:</strong> <span id="indexedInfo">Large data</span></li>
+                        </ul>
+                    </div>
+                    <div class="memory-controls">
+                        <button id="loadToMemory">Load to Memory</button>
+                        <button id="saveToIndexedDB">Save to IndexedDB</button>
+                        <button id="clearMemory">Clear Memory</button>
+                    </div>
+                    <div id="memoryStatus"></div>
+                </div>
+            </section>
+
+            <!-- Performance Metrics -->
+            <section class="demo-section">
+                <h2>⚡ Performance Metrics</h2>
+                <div class="metrics">
+                    <div class="metric">
+                        <h4>Search Performance</h4>
+                        <p>Non-normalized: <span id="slowSearchTime">-</span>ms</p>
+                        <p>Normalized: <span id="fastSearchTime">-</span>ms</p>
+                    </div>
+                    <div class="metric">
+                        <h4>Memory Usage</h4>
+                        <p>Current: <span id="currentMemory">-</span>MB</p>
+                        <p>Peak: <span id="peakMemory">-</span>MB</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="ui-state-demo.js"></script>
+</body>
+</html>

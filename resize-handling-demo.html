@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo xử lý resize: Media Query, Container Query, Resize Event, ResizeObserver</title>
+  <style>
+    :root { --bg: #0b1020; --card: #121a31; --muted: #9aa4bf; --accent: #4f7cff; --ok: #36c690; --warn: #ffb454; --bad: #ff6b6b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; background: var(--bg); color: #e6ecff; }
+    h1, h2 { font-weight: 700; }
+    a { color: var(--accent); text-decoration: none; }
+    .wrap { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: var(--card); border: 1px solid #1c2747; border-radius: 12px; padding: 16px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #1a2444; color: #b8c5ff; border: 1px solid #263160; }
+    .muted { color: var(--muted); }
+    .box { resize: both; overflow: auto; background: #17305a; border: 1px solid #2c3d73; border-radius: 8px; color: #dbe5ff; }
+    .sep { height: 1px; background: #202a4a; margin: 12px 0; }
+
+    /* 1) Media Query demo */
+    .mq-target { width: 100%; height: 120px; display: grid; place-items: center; border-radius: 8px; background: #1c2a52; border: 1px dashed #33457f; }
+    .mq-target span { font-weight: 600; }
+    @media (max-width: 600px) { .mq-target { background: #233760; } .mq-target span::after { content: " (<= 600px)"; color: var(--warn); } }
+    @media (min-width: 601px) { .mq-target span::after { content: " (> 600px)"; color: var(--ok); } }
+
+    /* 2) Container Query demo */
+    .cq-container { contain: inline-size; width: 100%; padding: 12px; border: 1px dashed #33457f; border-radius: 8px; background: #15264b; }
+    .cq-target { padding: 12px; border-radius: 8px; background: #1c2a52; }
+    @container (max-width: 380px) { .cq-target { background: #233760; } }
+
+    /* 3) window.onresize demo */
+    .resize-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat { background: #0f1a36; border: 1px solid #243161; border-radius: 8px; padding: 8px 10px; }
+
+    /* 4) ResizeObserver demo */
+    .ro-box { width: 220px; height: 120px; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; white-space: pre-wrap; color: #cfe1ff; background: #0f1730; border: 1px solid #223062; padding: 8px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🧠 Xử lý thay đổi kích thước (resize) trong web</h1>
+    <p class="muted">Minh họa 4 cách: <strong>Media Query</strong>, <strong>Container Query</strong>, <strong>window.onresize</strong> (debounce), và <strong>ResizeObserver</strong>.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="tag">1) CSS Media Query</div>
+        <p class="muted">Đổi giao diện thuần CSS theo viewport. Nhanh nhất, không có callback JS.</p>
+        <div class="mq-target"><span>Media Query demo</span></div>
+        <div class="sep"></div>
+        <div class="code">@media (max-width: 600px) { /* đổi style khi màn hình hẹp */ }</div>
+      </div>
+
+      <div class="card">
+        <div class="tag">2) CSS Container Query</div>
+        <p class="muted">Theo dõi kích thước container, CSS con tự đổi theo cha.</p>
+        <div class="box cq-container" style="min-height: 120px">
+          <div class="cq-target">Kéo container này để thấy màu thay đổi (≤ 380px)</div>
+        </div>
+        <div class="sep"></div>
+        <div class="code">@container (max-width: 380px) { .child { /* đổi style */ } }</div>
+      </div>
+
+      <div class="card">
+        <div class="tag">3) window.onresize (debounce)</div>
+        <p class="muted">Có callback JS, nhưng rất chậm nếu gọi liên tục. Dùng debounce.</p>
+        <div class="resize-stats">
+          <div class="stat">Số lần gọi (thật): <span id="resize-count-real">0</span></div>
+          <div class="stat">Số lần sau debounce: <span id="resize-count-debounced">0</span></div>
+          <div class="stat">Kích thước: <span id="win-size">-</span></div>
+          <div class="stat">Debounce (ms): <span id="debounce-ms">150</span></div>
+        </div>
+        <div class="sep"></div>
+        <div class="code">window.addEventListener('resize', debounce(handler, 150))</div>
+      </div>
+
+      <div class="card">
+        <div class="tag">4) ResizeObserver (khuyến nghị)</div>
+        <p class="muted">Theo dõi element cụ thể, rất nhanh (~10x). Có callback JS.</p>
+        <div class="box ro-box" id="ro-box">Kéo tôi! (góc dưới phải)</div>
+        <div class="sep"></div>
+        <div class="code">const ro = new ResizeObserver((entries) => {
+  const { inlineSize, blockSize } = entries[0].borderBoxSize[0]
+  // dùng inlineSize (width), blockSize (height)
+})
+ro.observe(element, { box: 'border-box' })</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>✅ TL;DR</h2>
+      <ul>
+        <li><strong>Media Query</strong>: responsive CSS, nhanh nhất, không callback JS.</li>
+        <li><strong>Container Query</strong>: CSS con phụ thuộc container, cũng rất nhanh.</li>
+        <li><strong>Resize Event</strong>: theo dõi window; chậm, nên debounce; phù hợp legacy.</li>
+        <li><strong>ResizeObserver</strong>: theo dõi element; nhanh, có callback; nên dùng cho app hiện đại.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>Ví dụ tối giản ResizeObserver</h2>
+      <div class="code">const box = document.querySelector('.box')
+const observer = new ResizeObserver((entries) => {
+  const size = entries[0].borderBoxSize[0]
+  console.log('Width:', size.inlineSize)
+  console.log('Height:', size.blockSize)
+})
+observer.observe(box, { box: 'border-box' })</div>
+    </div>
+  </div>
+
+  <script>
+    // 3) window.onresize with debounce
+    const resizeCountRealEl = document.getElementById('resize-count-real');
+    const resizeCountDebouncedEl = document.getElementById('resize-count-debounced');
+    const winSizeEl = document.getElementById('win-size');
+    const debounceMs = 150;
+    let resizeCountReal = 0;
+    let resizeCountDebounced = 0;
+
+    function debounce(fn, wait) {
+      let t;
+      return function debounced(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
+    function handleResize() {
+      resizeCountDebounced++;
+      resizeCountDebouncedEl.textContent = String(resizeCountDebounced);
+      winSizeEl.textContent = window.innerWidth + 'x' + window.innerHeight;
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCountReal++;
+      resizeCountRealEl.textContent = String(resizeCountReal);
+    });
+    window.addEventListener('resize', debounce(handleResize, debounceMs));
+    winSizeEl.textContent = window.innerWidth + 'x' + window.innerHeight;
+    document.getElementById('debounce-ms').textContent = String(debounceMs);
+
+    // 4) ResizeObserver demo
+    const roBox = document.getElementById('ro-box');
+    const ro = new ResizeObserver((entries) => {
+      const { inlineSize, blockSize } = entries[0].borderBoxSize?.[0] || {};
+      if (inlineSize && blockSize) {
+        roBox.textContent = `Width: ${Math.round(inlineSize)}px, Height: ${Math.round(blockSize)}px`;
+      }
+    });
+    ro.observe(roBox, { box: 'border-box' });
+  </script>
+</body>
+</html>
+
+
+

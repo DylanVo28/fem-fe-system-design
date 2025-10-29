@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MutationObserver Demo</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.5; padding: 16px; }
+    #editor { border: 1px solid #ccc; padding: 12px; min-height: 64px; border-radius: 8px; }
+    #editor.bold { font-weight: 700; }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+    button { padding: 8px 12px; border: 1px solid #ccc; background: #fff; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #f5f5f5; }
+    pre { background: #0f172a; color: #e5e7eb; padding: 12px; border-radius: 8px; max-height: 300px; overflow: auto; }
+  </style>
+  <!--
+    Hướng dẫn:
+    - Mở file trong trình duyệt (double click hoặc serve static)
+    - Sử dụng các nút điều khiển để tạo thay đổi DOM
+    - Quan sát log ở khung bên dưới
+  -->
+</head>
+<body>
+  <h2>MutationObserver: Quan sát thay đổi DOM</h2>
+
+  <div id="editor" contenteditable="true">Hello</div>
+
+  <div class="controls">
+    <button id="addNode">Thêm node child</button>
+    <button id="removeNode">Xóa node child cuối</button>
+    <button id="toggleBold">Toggle class "bold"</button>
+    <button id="changeStyle">Đổi style (màu ngẫu nhiên)</button>
+    <button id="changeText">Đổi text</button>
+    <button id="disconnect">Ngừng quan sát</button>
+    <button id="reconnect">Quan sát lại</button>
+    <button id="flush">Lấy queued records (takeRecords)</button>
+  </div>
+
+  <pre id="log"></pre>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const logEl = document.getElementById('log');
+
+    function log(line) {
+      const time = new Date().toLocaleTimeString();
+      logEl.textContent += `[${time}] ${line}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        log(`- Type: ${mutation.type}`);
+        if (mutation.type === 'childList') {
+          if (mutation.addedNodes.length) {
+            log(`  addedNodes: ${Array.from(mutation.addedNodes).map(n => n.outerHTML || `"${n.textContent}"`).join(', ')}`);
+          }
+          if (mutation.removedNodes.length) {
+            log(`  removedNodes: ${Array.from(mutation.removedNodes).map(n => n.outerHTML || `"${n.textContent}"`).join(', ')}`);
+          }
+          log(`  target: <${mutation.target.nodeName.toLowerCase()}>`);
+        }
+        if (mutation.type === 'attributes') {
+          log(`  attributeName: ${mutation.attributeName}`);
+          if (mutation.oldValue != null) {
+            log(`  oldValue: ${mutation.oldValue}`);
+          }
+          log(`  newValue: ${mutation.target.getAttribute(mutation.attributeName)}`);
+        }
+        if (mutation.type === 'characterData') {
+          log(`  oldValue: ${mutation.oldValue}`);
+          log(`  newValue: ${mutation.target.data}`);
+        }
+      }
+    });
+
+    const options = {
+      childList: true,
+      attributes: true,
+      characterData: true,
+      subtree: true,
+      attributeOldValue: true,
+      characterDataOldValue: true,
+      attributeFilter: ['class', 'style']
+    };
+
+    function startObserving() {
+      observer.observe(editor, options);
+      log('Observer: Bắt đầu quan sát');
+    }
+    startObserving();
+
+    // Controls
+    document.getElementById('addNode').onclick = () => {
+      const span = document.createElement('span');
+      span.textContent = ` [${Math.random().toString(16).slice(2, 6)}]`;
+      editor.appendChild(span);
+    };
+
+    document.getElementById('removeNode').onclick = () => {
+      const last = editor.lastChild;
+      if (last) last.remove();
+    };
+
+    document.getElementById('toggleBold').onclick = () => {
+      editor.classList.toggle('bold');
+    };
+
+    document.getElementById('changeStyle').onclick = () => {
+      const color = `hsl(${Math.floor(Math.random()*360)},70%,45%)`;
+      editor.style.color = color;
+    };
+
+    document.getElementById('changeText').onclick = () => {
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+      const textNode = walker.nextNode();
+      if (textNode) {
+        textNode.data = textNode.data + ' ✨';
+      } else {
+        editor.append(document.createTextNode('Hello ✨'));
+      }
+    };
+
+    document.getElementById('disconnect').onclick = () => {
+      observer.disconnect();
+      log('Observer: Ngừng quan sát');
+    };
+
+    document.getElementById('reconnect').onclick = () => {
+      startObserving();
+    };
+
+    document.getElementById('flush').onclick = () => {
+      const pending = observer.takeRecords();
+      log(`takeRecords(): lấy ${pending.length} record đang chờ`);
+      if (pending.length) {
+        pending.forEach(m => {
+          log(`(flush) Type: ${m.type}`);
+        });
+      }
+    };
+  </script>
+</body>
+</html>
+
+

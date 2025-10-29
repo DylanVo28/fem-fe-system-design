@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formatting Context trong Trình Duyệt</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Formatting Context trong Trình Duyệt</h1>
+            <p class="subtitle">Hiểu về các "vùng quy tắc" layout trong CSS</p>
+        </header>
+
+        <main>
+            <!-- Khái niệm -->
+            <section class="concept">
+                <h2>1. Khái niệm</h2>
+                <div class="definition">
+                    <p><strong>Formatting context</strong> = "vùng quy tắc" mà một element khi bước vào sẽ tuân theo những rule layout riêng.</p>
+                    <div class="key-ideas">
+                        <h3>Key ideas:</h3>
+                        <ul>
+                            <li><strong>Isolation:</strong> context bên trong độc lập, không bị ảnh hưởng bởi context bên ngoài</li>
+                            <li><strong>Scalability:</strong> CSS có thể giới thiệu thêm loại context mới (vd: Flex, Grid)</li>
+                            <li><strong>Predictability:</strong> Có tập luật rõ ràng → dễ đoán vị trí, cách render</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Block Formatting Context -->
+            <section class="bfc-demo">
+                <h2>2. Block Formatting Context (BFC)</h2>
+                <p>Mặc định khi render HTML → luôn khởi tạo BFC. Các block-level elements chiếm 100% width, render từ trên xuống.</p>
+                
+                <div class="demo-box">
+                    <h3>Ví dụ BFC mặc định:</h3>
+                    <div class="bfc-container">
+                        <div class="block-element">Block element 1</div>
+                        <div class="block-element">Block element 2</div>
+                        <div class="block-element">Block element 3</div>
+                    </div>
+                </div>
+
+                <div class="demo-box">
+                    <h3>BFC với margin collapse:</h3>
+                    <div class="margin-demo">
+                        <div class="box box1">Box 1 (margin-bottom: 20px)</div>
+                        <div class="box box2">Box 2 (margin-top: 30px)</div>
+                        <p class="note">→ Margin collapse: chỉ 30px (không phải 50px)</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inline Formatting Context -->
+            <section class="ifc-demo">
+                <h2>3. Inline Formatting Context (IFC)</h2>
+                <p>Khi element inline chứa text → content render trái sang phải. Các inline boxes chảy trên cùng một dòng.</p>
+                
+                <div class="demo-box">
+                    <h3>Ví dụ IFC:</h3>
+                    <div class="ifc-container">
+                        <span class="inline-text">Đây là text inline</span>
+                        <span class="inline-text">chảy từ trái sang phải</span>
+                        <span class="inline-text">trên cùng một dòng</span>
+                        <span class="inline-text">và tự động xuống dòng khi hết chỗ</span>
+                    </div>
+                </div>
+
+                <div class="demo-box">
+                    <h3>Inline-block elements:</h3>
+                    <div class="inline-block-demo">
+                        <div class="inline-block-item">Item 1</div>
+                        <div class="inline-block-item">Item 2</div>
+                        <div class="inline-block-item">Item 3</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flex Formatting Context -->
+            <section class="flex-demo">
+                <h2>4. Flex Formatting Context</h2>
+                <p>Xuất hiện khi element có <code>display: flex</code>. Các con trở thành flex items với quy tắc riêng.</p>
+                
+                <div class="demo-box">
+                    <h3>Flex container mặc định (flex-direction: row):</h3>
+                    <div class="flex-container">
+                        <div class="flex-item">Flex Item 1</div>
+                        <div class="flex-item">Flex Item 2</div>
+                        <div class="flex-item">Flex Item 3</div>
+                    </div>
+                </div>
+
+                <div class="demo-box">
+                    <h3>Flex column:</h3>
+                    <div class="flex-container flex-column">
+                        <div class="flex-item">Flex Item 1</div>
+                        <div class="flex-item">Flex Item 2</div>
+                        <div class="flex-item">Flex Item 3</div>
+                    </div>
+                </div>
+
+                <div class="demo-box">
+                    <h3>Flex với justify-content: space-between:</h3>
+                    <div class="flex-container space-between">
+                        <div class="flex-item">Item 1</div>
+                        <div class="flex-item">Item 2</div>
+                        <div class="flex-item">Item 3</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ví dụ HTML render -->
+            <section class="html-render-demo">
+                <h2>5. Cách hình thành context khi render HTML</h2>
+                <div class="demo-box">
+                    <h3>Ví dụ HTML structure:</h3>
+                    <div class="code-example">
+                        <pre><code>&lt;html&gt; → luôn tạo BFC
+&lt;body&gt; → tham gia BFC của html
+  &lt;h1&gt;Heading&lt;/h1&gt; → tham gia BFC
+  &lt;ul&gt; → tham gia BFC
+    &lt;li style="display: inline-block"&gt; → tạo inline-block context
+    &lt;li style="display: inline-block"&gt; → tạo inline-block context
+  &lt;/ul&gt;
+  &lt;section style="display: flex"&gt; → tạo Flex context
+    &lt;div&gt;Flex Item 1&lt;/div&gt; → trở thành flex item
+    &lt;div&gt;Flex Item 2&lt;/div&gt; → trở thành flex item
+  &lt;/section&gt;
+  &lt;span&gt;Text content&lt;/span&gt; → tạo IFC cho text
+&lt;/body&gt;</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vai trò CSS vs HTML -->
+            <section class="css-vs-html">
+                <h2>6. Vai trò CSS vs HTML</h2>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h3>HTML</h3>
+                        <p>Chỉ cho default behavior</p>
+                        <ul>
+                            <li><code>&lt;div&gt;</code> = block</li>
+                            <li><code>&lt;span&gt;</code> = inline</li>
+                            <li><code>&lt;h1&gt;</code> = block</li>
+                        </ul>
+                    </div>
+                    <div class="comparison-item">
+                        <h3>CSS</h3>
+                        <p>Yếu tố quyết định context</p>
+                        <ul>
+                            <li><code>display: flex</code> → Flex context</li>
+                            <li><code>display: inline-block</code> → inline-block</li>
+                            <li><code>display: grid</code> → Grid context</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tóm lại -->
+            <section class="summary">
+                <h2>7. Tóm lại</h2>
+                <div class="summary-content">
+                    <div class="summary-point">
+                        <h3>Mặc định:</h3>
+                        <p><code>&lt;html&gt;</code> khởi tạo BFC</p>
+                    </div>
+                    <div class="summary-point">
+                        <h3>CSS display:</h3>
+                        <p>Có thể tạo context mới (inline, flex, grid)</p>
+                    </div>
+                    <div class="summary-point">
+                        <h3>Isolation:</h3>
+                        <p>Mỗi context là một thế giới riêng: độc lập, có luật layout riêng, không bị ảnh hưởng từ ngoài</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

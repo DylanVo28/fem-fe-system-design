@@ -1,0 +1,83 @@
+//
+// @author LazyBear 
+// List of all my indicators: https://www.tradingview.com/v/4IneGo8h/
+// Optimized version with noise filtering
+//
+study(shorttitle = "SQZMOM_LB_OPT", title="Squeeze Momentum Indicator [LazyBear] - Optimized", overlay=false)
+
+// Original parameters
+length = input(20, title="BB Length")
+mult = input(2.0,title="BB MultFactor")
+lengthKC=input(20, title="KC Length")
+multKC = input(1.5, title="KC MultFactor")
+useTrueRange = input(true, title="Use TrueRange (KC)", type=bool)
+
+// Noise filtering parameters
+smoothingLength = input(3, title="Momentum Smoothing Length", minval=1, maxval=10)
+noiseThreshold = input(0.1, title="Noise Threshold (%)", minval=0.01, maxval=1.0, step=0.01)
+momentumConfirmation = input(2, title="Momentum Confirmation Bars", minval=1, maxval=5)
+volatilityFilter = input(true, title="Enable Volatility Filter", type=bool)
+volatilityLength = input(14, title="Volatility Filter Length", minval=5, maxval=50)
+
+// Calculate BB
+source = close
+basis = sma(source, length)
+dev = multKC * stdev(source, length)
+upperBB = basis + dev
+lowerBB = basis - dev
+
+// Calculate KC
+ma = sma(source, lengthKC)
+range = useTrueRange ? tr : (high - low)
+rangema = sma(range, lengthKC)
+upperKC = ma + rangema * multKC
+lowerKC = ma - rangema * multKC
+
+sqzOn  = (lowerBB > lowerKC) and (upperBB < upperKC)
+sqzOff = (lowerBB < lowerKC) and (upperBB > upperKC)
+noSqz  = (sqzOn == false) and (sqzOff == false)
+
+// Calculate raw momentum
+rawVal = linreg(source  -  avg(avg(highest(high, lengthKC), lowest(low, lengthKC)),sma(close,lengthKC)), 
+            lengthKC,0)
+
+// Apply smoothing to reduce noise
+smoothedVal = sma(rawVal, smoothingLength)
+
+// Calculate volatility for adaptive filtering
+atr = volatilityFilter ? atr(volatilityLength) : 1
+volatilityMultiplier = volatilityFilter ? (atr / sma(atr, volatilityLength)) : 1
+
+// Apply noise threshold filtering
+threshold = noiseThreshold * volatilityMultiplier
+filteredVal = abs(smoothedVal) > threshold ? smoothedVal : 0
+
+// Momentum confirmation - require consecutive bars in same direction
+momentumUp = filteredVal > 0 and filteredVal > nz(filteredVal[1])
+momentumDown = filteredVal < 0 and filteredVal < nz(filteredVal[1])
+
+// Count consecutive momentum bars
+momentumUpCount = momentumUp ? nz(momentumUpCount[1]) + 1 : 0
+momentumDownCount = momentumDown ? nz(momentumDownCount[1]) + 1 : 0
+
+// Only show momentum when confirmed
+confirmedMomentum = (momentumUpCount >= momentumConfirmation and momentumUp) or 
+                   (momentumDownCount >= momentumConfirmation and momentumDown)
+
+// Final filtered value
+val = confirmedMomentum ? filteredVal : 0
+
+// Enhanced color scheme with noise indication
+bcolor = iff( val > 0, 
+            iff( val > nz(val[1]), lime, green),
+            iff( val < nz(val[1]), red, maroon))
+
+// Show noise level with different colors
+noiseLevel = abs(rawVal) / (threshold * 2)
+scolor = noSqz ? blue : sqzOn ? black : (noiseLevel > 1 ? gray : silver)
+
+plot(val, color=bcolor, style=histogram, linewidth=4, title="Filtered Momentum")
+plot(0, color=scolor, style=cross, linewidth=2, title="Zero Line")
+
+// Optional: Show raw momentum for comparison (can be hidden)
+plot(rawVal, color=color.new(blue, 80), style=histogram, linewidth=1, title="Raw Momentum (Hidden)", display=display.none)

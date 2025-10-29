@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual List Demo - Tối ưu hiệu suất danh sách dài</title>
+    <link rel="stylesheet" href="virtual-list-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Virtual List Demo</h1>
+            <p>Tối ưu hiệu suất khi hiển thị danh sách 10,000 items</p>
+        </header>
+
+        <div class="controls">
+            <button id="normalList" class="btn">Hiển thị danh sách thường (chậm)</button>
+            <button id="virtualList" class="btn primary">Hiển thị Virtual List (nhanh)</button>
+            <button id="clearList" class="btn secondary">Xóa danh sách</button>
+        </div>
+
+        <div class="info">
+            <div class="info-item">
+                <span class="label">Tổng số items:</span>
+                <span id="totalItems">0</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Items đang render:</span>
+                <span id="renderedItems">0</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Thời gian render:</span>
+                <span id="renderTime">0ms</span>
+            </div>
+        </div>
+
+        <!-- Container cho danh sách thường -->
+        <div id="normalListContainer" class="list-container" style="display: none;">
+            <h3>📋 Danh sách thường (tất cả items trong DOM)</h3>
+            <div id="normalListItems"></div>
+        </div>
+
+        <!-- Container cho Virtual List -->
+        <div id="virtualListContainer" class="list-container" style="display: none;">
+            <h3>⚡ Virtual List (chỉ render items nhìn thấy)</h3>
+            <div id="virtualListRoot" class="virtual-list-root">
+                <!-- Virtual List sẽ được render ở đây -->
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h3>💡 Cách hoạt động của Virtual List</h3>
+            <div class="explanation-content">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Render ban đầu:</strong> Chỉ hiển thị các items trong viewport (khoảng 10-15 items)
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Cuộn xuống:</strong> Khi chạm bottom observer, tải thêm items mới
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Tái sử dụng DOM:</strong> Items cũ được tái sử dụng cho items mới (recycling)
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Di chuyển vị trí:</strong> Sử dụng CSS transform để di chuyển items
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="virtual-list.js"></script>
+    <script>
+        // Demo script
+        const TOTAL_ITEMS = 10000;
+        let virtualList = null;
+
+        // Tạo dữ liệu mẫu
+        function generateData(count) {
+            return Array.from({ length: count }, (_, i) => ({
+                id: i + 1,
+                title: `Item ${i + 1}`,
+                description: `Mô tả cho item ${i + 1}`,
+                color: `hsl(${(i * 137.5) % 360}, 70%, 60%)`
+            }));
+        }
+
+        // Hiển thị danh sách thường
+        function showNormalList() {
+            const startTime = performance.now();
+            
+            document.getElementById('normalListContainer').style.display = 'block';
+            document.getElementById('virtualListContainer').style.display = 'none';
+            
+            const container = document.getElementById('normalListItems');
+            container.innerHTML = '';
+            
+            const data = generateData(TOTAL_ITEMS);
+            
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'list-item normal';
+                div.style.backgroundColor = item.color;
+                div.innerHTML = `
+                    <div class="item-id">#${item.id}</div>
+                    <div class="item-title">${item.title}</div>
+                    <div class="item-description">${item.description}</div>
+                `;
+                container.appendChild(div);
+            });
+            
+            const endTime = performance.now();
+            updateInfo(TOTAL_ITEMS, TOTAL_ITEMS, endTime - startTime);
+        }
+
+        // Hiển thị Virtual List
+        function showVirtualList() {
+            const startTime = performance.now();
+            
+            document.getElementById('normalListContainer').style.display = 'none';
+            document.getElementById('virtualListContainer').style.display = 'block';
+            
+            const data = generateData(TOTAL_ITEMS);
+            const root = document.getElementById('virtualListRoot');
+            
+            // Tạo Virtual List
+            virtualList = new VirtualList({
+                root,
+                data,
+                itemHeight: 80,
+                visibleCount: 15,
+                renderItem: (item, index) => `
+                    <div class="list-item virtual" style="background-color: ${item.color}">
+                        <div class="item-id">#${item.id}</div>
+                        <div class="item-title">${item.title}</div>
+                        <div class="item-description">${item.description}</div>
+                    </div>
+                `
+            });
+            
+            const endTime = performance.now();
+            updateInfo(TOTAL_ITEMS, virtualList.visibleCount, endTime - startTime);
+        }
+
+        // Xóa danh sách
+        function clearList() {
+            document.getElementById('normalListContainer').style.display = 'none';
+            document.getElementById('virtualListContainer').style.display = 'none';
+            document.getElementById('normalListItems').innerHTML = '';
+            document.getElementById('virtualListRoot').innerHTML = '';
+            virtualList = null;
+            updateInfo(0, 0, 0);
+        }
+
+        // Cập nhật thông tin
+        function updateInfo(total, rendered, time) {
+            document.getElementById('totalItems').textContent = total.toLocaleString();
+            document.getElementById('renderedItems').textContent = rendered.toLocaleString();
+            document.getElementById('renderTime').textContent = `${time.toFixed(2)}ms`;
+        }
+
+        // Event listeners
+        document.getElementById('normalList').addEventListener('click', showNormalList);
+        document.getElementById('virtualList').addEventListener('click', showVirtualList);
+        document.getElementById('clearList').addEventListener('click', clearList);
+    </script>
+</body>
+</html>

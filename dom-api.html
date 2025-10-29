@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DOM API - Tóm tắt & Hiệu năng</title>
+    <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: #11151a;
+        --text: #e6edf3;
+        --muted: #9aa4af;
+        --accent: #67e8f9;
+        --accent-2: #a78bfa;
+        --border: #1f2630;
+        --code-bg: #0f1318;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 800px at 20% -10%, rgba(103,232,249,0.06), transparent),
+                    radial-gradient(1000px 700px at 120% 20%, rgba(167,139,250,0.06), transparent),
+                    var(--bg);
+        color: var(--text);
+        font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 64px;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(180deg, rgba(11,13,16,0.9), rgba(11,13,16,0.65) 60%, transparent);
+        backdrop-filter: blur(6px);
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 24px;
+      }
+      header .container { padding: 16px 20px; }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: 0.2px;
+      }
+      h2 {
+        margin: 28px 0 12px;
+        font-size: 20px;
+        color: var(--accent);
+      }
+      h3 {
+        margin: 22px 0 10px;
+        font-size: 16px;
+        color: var(--accent-2);
+      }
+      p { margin: 0 0 12px; color: var(--text); }
+      .muted { color: var(--muted); }
+      ul { margin: 8px 0 16px 20px; padding: 0; }
+      li { margin: 6px 0; }
+      .panel {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 40%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 18px;
+        margin: 14px 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+      .kbd {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        padding: 0 6px;
+        border-radius: 6px;
+        color: var(--text);
+      }
+      .callout {
+        border-left: 3px solid var(--accent);
+        padding-left: 12px;
+      }
+      .summary-list li { margin: 4px 0; }
+      code { font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1>DOM API là gì?</h1>
+        <p class="muted">Tóm tắt khái niệm, đối tượng chính, phương thức truy vấn và hiệu năng</p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="panel">
+        <p><strong>DOM API</strong>: tập hợp các method để thao tác trực tiếp với DOM.</p>
+        <p class="muted">Thường không dùng trực tiếp vì framework/library (React, Vue, Angular) lo phần này, nhưng cần thiết khi:</p>
+        <ul>
+          <li>Viết thư viện low-level (virtualization, DOM management).</li>
+          <li>Xây dựng component generic (video player, chart engine).</li>
+          <li>Muốn tối ưu bundle size (portfolio, lightweight app).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Các đối tượng chính</h2>
+        <div class="grid">
+          <div class="panel">
+            <h3>Window</h3>
+            <p>Global object, đại diện viewport, chứa <code>document</code>.</p>
+          </div>
+          <div class="panel">
+            <h3>Document</h3>
+            <p>Đại diện toàn bộ HTML, truy cập qua <code>window.document</code>.</p>
+            <p class="muted">Có quick access: <code>document.body</code>, <code>document.head</code>.</p>
+          </div>
+          <div class="panel">
+            <h3>HTMLElement</h3>
+            <p>Đại diện phần tử HTML.</p>
+            <p class="muted"><code>Element</code> prototype là nơi chứa DOM API (áp dụng cho HTML/SVG/XML).</p>
+          </div>
+          <div class="panel">
+            <h3>Node</h3>
+            <p>Đại diện node trong DOM tree (bao gồm <code>Element</code>, <code>Text</code>...).</p>
+          </div>
+          <div class="panel">
+            <h3>TextNode</h3>
+            <p>Đại diện cho text trong DOM.</p>
+          </div>
+          <div class="panel">
+            <h3>HTMLDocument</h3>
+            <p>Extends <code>Node</code>, có DOM API, là ngoại lệ nho nhỏ trong hệ thống class.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Query Methods (truy vấn DOM)</h2>
+        <div class="panel">
+          <h3>getElementById</h3>
+          <ul>
+            <li>Dùng Hashmap → <span class="kbd">O(1)</span>.</li>
+            <li>Nhanh nhất, nhưng ID global → cẩn thận trùng ID.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>getElementsByClassName / getElementsByTagName</h3>
+          <ul>
+            <li>Duyệt DFS toàn bộ tree → <span class="kbd">O(N)</span>.</li>
+            <li>Trả về <strong>HTMLCollection (live)</strong>:
+              <ul>
+                <li>Luôn phản ánh DOM thật.</li>
+                <li>Read cost <span class="kbd">O(N)</span> (mỗi lần đọc lại traverse).</li>
+                <li><strong>Ưu</strong>: tốn ít bộ nhớ (chỉ tham chiếu).</li>
+                <li><strong>Nhược</strong>: đọc/loop nhiều sẽ rất chậm (có thể thành <span class="kbd">O(N²)</span>).</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>querySelector / querySelectorAll</h3>
+          <ul>
+            <li>Sử dụng CSS selector → compile selector trước.</li>
+            <li>Thường <span class="kbd">O(1)</span> cho đọc element (đặc biệt khi dùng ID).</li>
+            <li><code>querySelector</code> → trả về phần tử đầu tiên.</li>
+            <li><code>querySelectorAll</code> → trả về <strong>NodeList (non-live, copy)</strong>:
+              <ul>
+                <li>Không cập nhật khi DOM thay đổi.</li>
+                <li>Tốn thêm bộ nhớ (copy object).</li>
+                <li>Truy cập nhanh hơn (<span class="kbd">O(1)</span>), không cần traverse lại.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Tổng kết hiệu năng</h2>
+        <div class="panel">
+          <ul class="summary-list">
+            <li><strong>getElementById</strong>: nhanh nhất, <span class="kbd">O(1)</span>.</li>
+            <li><strong>getElementsByClassName / TagName</strong>: tiết kiệm bộ nhớ nhưng đọc chậm, không nên loop nhiều.</li>
+            <li><strong>querySelector / querySelectorAll</strong>: linh hoạt, hiệu năng gần <code>getElementById</code>, nhưng <code>querySelectorAll</code> tốn thêm memory do copy.</li>
+          </ul>
+          <p class="muted callout">Cơ chế cache & tối ưu khác nhau giữa các browser (Safari vs Chrome), không thể đảm bảo giống nhau.</p>
+        </div>
+
+        <div class="panel">
+          <h3>👉 Tóm gọn:</h3>
+          <ul>
+            <li><strong>Muốn nhanh</strong> → <code>getElementById</code>.</li>
+            <li><strong>Muốn ít memory</strong> → <code>getElementsByClassName</code>/<code>TagName</code> (cẩn thận <em>live</em>).</li>
+            <li><strong>Muốn tiện & linh hoạt</strong> → <code>querySelector</code> / <code>querySelectorAll</code>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="muted" style="margin-top:24px">
+        <p>Gợi ý: khi benchmark, hãy đo theo use-case thật của bạn, kết quả có thể khác nhau tùy cấu trúc DOM, kích thước tree, và engine trình duyệt.</p>
+      </section>
+    </main>
+    
+    <main class="container" style="padding-top:0">
+      <section>
+        <h2>Ví dụ minh hoạ</h2>
+        <div class="panel">
+          <p class="muted" style="margin-bottom:12px">Tương tác dưới đây minh hoạ khác biệt giữa <strong>HTMLCollection (live)</strong> và <strong>NodeList (non-live)</strong>, đồng thời cho thấy cách dùng các query methods.</p>
+          <div id="demo-box" class="panel" style="margin-top:10px">
+            <h3 style="margin-top:0">Demo List</h3>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px">
+              <button id="btnById">getElementById(“demo-box”)</button>
+              <button id="btnByClass">getElementsByClassName(“.item”)</button>
+              <button id="btnQS">querySelector(“.item”)</button>
+              <button id="btnQSA">querySelectorAll(“.item”)</button>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px">
+              <button id="btnAdd">Thêm item</button>
+              <button id="btnRemove">Xoá item cuối</button>
+              <span class="muted">HTMLCollection (live): <span id="liveCount" class="kbd">0</span></span>
+              <span class="muted">NodeList (snapshot): <span id="snapCount" class="kbd">0</span></span>
+            </div>
+            <ul id="demoList" class="list">
+              <li class="item">Item 1</li>
+              <li class="item">Item 2</li>
+              <li class="item">Item 3</li>
+            </ul>
+            <div id="log" class="muted" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <script>
+      (function() {
+        const demoBox = document.getElementById('demo-box');
+        const demoList = document.getElementById('demoList');
+        const log = document.getElementById('log');
+        const liveCountEl = document.getElementById('liveCount');
+        const snapCountEl = document.getElementById('snapCount');
+
+        // Live HTMLCollection (updates automatically when DOM changes)
+        const liveCollection = document.getElementsByClassName('item');
+        // Snapshot NodeList (will not update unless queried again)
+        let snapshotList = document.querySelectorAll('.item');
+
+        function updateCounters() {
+          liveCountEl.textContent = String(liveCollection.length);
+          snapCountEl.textContent = String(snapshotList.length);
+        }
+
+        function highlight(el) {
+          if (!el) return;
+          const original = el.style.boxShadow;
+          el.style.boxShadow = '0 0 0 2px rgba(103,232,249,0.9) inset, 0 0 0 2px rgba(103,232,249,0.2)';
+          setTimeout(() => { el.style.boxShadow = original; }, 600);
+        }
+
+        function logLine(text) {
+          const time = new Date().toLocaleTimeString();
+          log.textContent = `[${time}] ${text}`;
+        }
+
+        document.getElementById('btnById').addEventListener('click', () => {
+          const el = document.getElementById('demo-box');
+          highlight(el);
+          logLine('getElementById("demo-box") → 1 element');
+        });
+
+        document.getElementById('btnByClass').addEventListener('click', () => {
+          // Accessing liveCollection reflects current DOM without re-query
+          const count = liveCollection.length;
+          if (count > 0) highlight(liveCollection[0]);
+          logLine(`getElementsByClassName('.item') → HTMLCollection (live), length=${count}`);
+          updateCounters();
+        });
+
+        document.getElementById('btnQS').addEventListener('click', () => {
+          const first = document.querySelector('.item');
+          highlight(first);
+          logLine('querySelector(".item") → phần tử đầu tiên');
+        });
+
+        document.getElementById('btnQSA').addEventListener('click', () => {
+          snapshotList = document.querySelectorAll('.item');
+          if (snapshotList.length > 0) highlight(snapshotList[0]);
+          logLine(`querySelectorAll('.item') → NodeList (snapshot), length=${snapshotList.length}`);
+          updateCounters();
+        });
+
+        let nextIndex = 4;
+        document.getElementById('btnAdd').addEventListener('click', () => {
+          const li = document.createElement('li');
+          li.className = 'item';
+          li.textContent = `Item ${nextIndex++}`;
+          demoList.appendChild(li);
+          // liveCollection updates automatically; snapshot stays the same until re-query
+          updateCounters();
+          logLine('Thêm item → HTMLCollection tăng ngay; NodeList giữ nguyên cho đến khi query lại');
+        });
+
+        document.getElementById('btnRemove').addEventListener('click', () => {
+          const last = demoList.lastElementChild;
+          if (!last) return;
+          demoList.removeChild(last);
+          updateCounters();
+          logLine('Xoá item → HTMLCollection giảm ngay; NodeList giữ nguyên cho đến khi query lại');
+        });
+
+        // Initial counters
+        updateCounters();
+      })();
+    </script>
+  </body>
+  </html>
+
+

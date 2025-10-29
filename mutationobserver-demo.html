@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MutationObserver vs setInterval vs DOMSubtreeModified</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .demo-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .demo-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .performance-monitor {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .test-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 10px 0;
+            min-height: 100px;
+            background: #f9f9f9;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .cpu-usage {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .efficient {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>So sánh các phương pháp theo dõi thay đổi DOM</h1>
+    
+    <div class="warning">
+        <strong>⚠️ Cảnh báo:</strong> Các ví dụ này minh họa các phương pháp không hiệu quả. 
+        Chỉ sử dụng trong môi trường test!
+    </div>
+
+    <!-- Demo 1: setInterval() - Tốn CPU -->
+    <div class="container">
+        <h2>1. setInterval() - Phương pháp tốn CPU</h2>
+        <div class="demo-section">
+            <h3>❌ Không nên dùng: setInterval()</h3>
+            <p>Liên tục kiểm tra DOM mỗi 100ms → rất tốn CPU</p>
+            
+            <div class="performance-monitor">
+                <div>CPU Usage: <span id="cpu-usage-setinterval">0%</span></div>
+                <div>Checks per second: <span id="checks-per-second">0</span></div>
+                <div>Total checks: <span id="total-checks">0</span></div>
+            </div>
+            
+            <button id="start-setinterval">Bắt đầu setInterval()</button>
+            <button id="stop-setinterval" disabled>Dừng setInterval()</button>
+            
+            <div class="test-area" id="setinterval-test-area">
+                <p>Click "Add Element" để thêm phần tử và xem setInterval() phát hiện</p>
+                <button onclick="addElementToSetInterval()">Add Element</button>
+            </div>
+            
+            <div class="log" id="setinterval-log"></div>
+        </div>
+    </div>
+
+    <!-- Demo 2: DOMSubtreeModified - Deprecated -->
+    <div class="container">
+        <h2>2. DOMSubtreeModified - Event đã bị loại bỏ</h2>
+        <div class="demo-section">
+            <h3>❌ Deprecated: DOMSubtreeModified</h3>
+            <p>Event này đã bị loại bỏ vì không hiệu quả và có thể gây vấn đề performance</p>
+            
+            <div class="warning">
+                <strong>Lưu ý:</strong> DOMSubtreeModified đã bị deprecated và không được khuyến nghị sử dụng.
+                Một số browser có thể không hỗ trợ hoặc hoạt động không ổn định.
+            </div>
+            
+            <button id="start-dommodified">Bắt đầu DOMSubtreeModified</button>
+            <button id="stop-dommodified" disabled>Dừng DOMSubtreeModified</button>
+            
+            <div class="test-area" id="dommodified-test-area">
+                <p>Click "Add Element" để thêm phần tử và xem DOMSubtreeModified phát hiện</p>
+                <button onclick="addElementToDOMModified()">Add Element</button>
+            </div>
+            
+            <div class="log" id="dommodified-log"></div>
+        </div>
+    </div>
+
+    <!-- Demo 3: MutationObserver - Hiệu quả -->
+    <div class="container">
+        <h2>3. MutationObserver - Phương pháp hiệu quả</h2>
+        <div class="demo-section">
+            <h3>✅ Nên dùng: MutationObserver</h3>
+            <p>API hiện đại, hiệu quả, không tốn CPU</p>
+            
+            <div class="success">
+                <strong>Khuyến nghị:</strong> Sử dụng MutationObserver cho tất cả các trường hợp cần theo dõi thay đổi DOM.
+            </div>
+            
+            <div class="performance-monitor">
+                <div>CPU Usage: <span class="efficient">Thấp</span></div>
+                <div>Event-driven: <span class="efficient">Có</span></div>
+                <div>Browser support: <span class="efficient">Tốt</span></div>
+            </div>
+            
+            <button id="start-mutation">Bắt đầu MutationObserver</button>
+            <button id="stop-mutation" disabled>Dừng MutationObserver</button>
+            
+            <div class="test-area" id="mutation-test-area">
+                <p>Click "Add Element" để thêm phần tử và xem MutationObserver phát hiện</p>
+                <button onclick="addElementToMutation()">Add Element</button>
+                <button onclick="removeElementFromMutation()">Remove Element</button>
+            </div>
+            
+            <div class="log" id="mutation-log"></div>
+        </div>
+    </div>
+
+    <!-- So sánh Performance -->
+    <div class="container">
+        <h2>4. So sánh Performance</h2>
+        <div class="demo-section">
+            <h3>📊 Bảng so sánh</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">Phương pháp</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">CPU Usage</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Performance</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Browser Support</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Khuyến nghị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>setInterval()</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><span class="cpu-usage">Cao</span></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">❌ Kém</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">✅ Tốt</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">❌ Không</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>DOMSubtreeModified</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><span class="cpu-usage">Trung bình</span></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">⚠️ Không ổn định</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">❌ Deprecated</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">❌ Không</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>MutationObserver</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><span class="efficient">Thấp</span></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">✅ Tốt</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">✅ Tốt</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">✅ Có</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ===== DEMO 1: setInterval() - Tốn CPU =====
+        let setIntervalId = null;
+        let setIntervalChecks = 0;
+        let setIntervalStartTime = null;
+        let previousSetIntervalHTML = '';
+
+        function startSetInterval() {
+            const button = document.getElementById('start-setinterval');
+            const stopButton = document.getElementById('stop-setinterval');
+            const log = document.getElementById('setinterval-log');
+            
+            button.disabled = true;
+            stopButton.disabled = false;
+            
+            setIntervalStartTime = Date.now();
+            setIntervalChecks = 0;
+            
+            log.innerHTML = 'Bắt đầu setInterval() - Kiểm tra DOM mỗi 100ms...\n';
+            
+            setIntervalId = setInterval(() => {
+                setIntervalChecks++;
+                const testArea = document.getElementById('setinterval-test-area');
+                const currentHTML = testArea.innerHTML;
+                
+                // Cập nhật performance monitor
+                updateSetIntervalPerformance();
+                
+                // Kiểm tra thay đổi
+                if (currentHTML !== previousSetIntervalHTML) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    log.innerHTML += `[${timestamp}] DOM thay đổi được phát hiện!\n`;
+                    log.scrollTop = log.scrollHeight;
+                    previousSetIntervalHTML = currentHTML;
+                }
+            }, 100); // Kiểm tra mỗi 100ms - rất tốn CPU!
+        }
+
+        function stopSetInterval() {
+            if (setIntervalId) {
+                clearInterval(setIntervalId);
+                setIntervalId = null;
+            }
+            
+            document.getElementById('start-setinterval').disabled = false;
+            document.getElementById('stop-setinterval').disabled = true;
+            
+            const log = document.getElementById('setinterval-log');
+            log.innerHTML += 'Đã dừng setInterval()\n';
+        }
+
+        function updateSetIntervalPerformance() {
+            const now = Date.now();
+            const elapsed = (now - setIntervalStartTime) / 1000;
+            const checksPerSecond = Math.round(setIntervalChecks / elapsed);
+            
+            document.getElementById('cpu-usage-setinterval').textContent = 'Cao (liên tục kiểm tra)';
+            document.getElementById('checks-per-second').textContent = checksPerSecond;
+            document.getElementById('total-checks').textContent = setIntervalChecks;
+        }
+
+        function addElementToSetInterval() {
+            const testArea = document.getElementById('setinterval-test-area');
+            const newElement = document.createElement('div');
+            newElement.textContent = `Element ${Date.now()}`;
+            newElement.style.margin = '5px';
+            newElement.style.padding = '5px';
+            newElement.style.background = '#e3f2fd';
+            newElement.style.border = '1px solid #2196f3';
+            newElement.style.borderRadius = '3px';
+            testArea.appendChild(newElement);
+        }
+
+        // ===== DEMO 2: DOMSubtreeModified - Deprecated =====
+        let domModifiedActive = false;
+
+        function startDOMModified() {
+            const button = document.getElementById('start-dommodified');
+            const stopButton = document.getElementById('stop-dommodified');
+            const log = document.getElementById('dommodified-log');
+            
+            button.disabled = true;
+            stopButton.disabled = false;
+            domModifiedActive = true;
+            
+            log.innerHTML = 'Bắt đầu DOMSubtreeModified listener...\n';
+            
+            const testArea = document.getElementById('dommodified-test-area');
+            
+            // DOMSubtreeModified đã bị deprecated
+            testArea.addEventListener('DOMSubtreeModified', function(event) {
+                if (domModifiedActive) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    log.innerHTML += `[${timestamp}] DOMSubtreeModified: ${event.type}\n`;
+                    log.scrollTop = log.scrollHeight;
+                }
+            });
+            
+            log.innerHTML += '⚠️ Lưu ý: DOMSubtreeModified đã bị deprecated và có thể không hoạt động trong một số browser\n';
+        }
+
+        function stopDOMModified() {
+            domModifiedActive = false;
+            document.getElementById('start-dommodified').disabled = false;
+            document.getElementById('stop-dommodified').disabled = true;
+            
+            const log = document.getElementById('dommodified-log');
+            log.innerHTML += 'Đã dừng DOMSubtreeModified listener\n';
+        }
+
+        function addElementToDOMModified() {
+            const testArea = document.getElementById('dommodified-test-area');
+            const newElement = document.createElement('div');
+            newElement.textContent = `Element ${Date.now()}`;
+            newElement.style.margin = '5px';
+            newElement.style.padding = '5px';
+            newElement.style.background = '#fff3e0';
+            newElement.style.border = '1px solid #ff9800';
+            newElement.style.borderRadius = '3px';
+            testArea.appendChild(newElement);
+        }
+
+        // ===== DEMO 3: MutationObserver - Hiệu quả =====
+        let mutationObserver = null;
+
+        function startMutationObserver() {
+            const button = document.getElementById('start-mutation');
+            const stopButton = document.getElementById('stop-mutation');
+            const log = document.getElementById('mutation-log');
+            
+            button.disabled = true;
+            stopButton.disabled = false;
+            
+            log.innerHTML = 'Bắt đầu MutationObserver...\n';
+            
+            const testArea = document.getElementById('mutation-test-area');
+            
+            // Tạo MutationObserver
+            mutationObserver = new MutationObserver(function(mutations) {
+                console.log(mutations);
+                mutations.forEach(function(mutation) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    
+                    if (mutation.type === 'childList') {
+                        if (mutation.addedNodes.length > 0) {
+                            log.innerHTML += `[${timestamp}] ✅ Thêm ${mutation.addedNodes.length} node(s)\n`;
+                        }
+                        if (mutation.removedNodes.length > 0) {
+                            log.innerHTML += `[${timestamp}] ❌ Xóa ${mutation.removedNodes.length} node(s)\n`;
+                        }
+                    }
+                    
+                    if (mutation.type === 'attributes') {
+                        log.innerHTML += `[${timestamp}] 🔄 Thuộc tính '${mutation.attributeName}' thay đổi\n`;
+                    }
+                    
+                    log.scrollTop = log.scrollHeight;
+                });
+            });
+            
+            // Bắt đầu quan sát
+            mutationObserver.observe(testArea, {
+                childList: true,        // Quan sát thêm/xóa child nodes
+                attributes: true,      // Quan sát thay đổi attributes
+                subtree: true,         // Quan sát toàn bộ subtree
+                attributeOldValue: true,
+                characterData: true
+            });
+            
+            log.innerHTML += '✅ MutationObserver đã bắt đầu quan sát\n';
+        }
+
+        function stopMutationObserver() {
+            if (mutationObserver) {
+                mutationObserver.disconnect();
+                mutationObserver = null;
+            }
+            
+            document.getElementById('start-mutation').disabled = false;
+            document.getElementById('stop-mutation').disabled = true;
+            
+            const log = document.getElementById('mutation-log');
+            log.innerHTML += 'Đã dừng MutationObserver\n';
+        }
+
+        function addElementToMutation() {
+            const testArea = document.getElementById('mutation-test-area');
+            const newElement = document.createElement('div');
+            newElement.textContent = `Element ${Date.now()}`;
+            newElement.style.margin = '5px';
+            newElement.style.padding = '5px';
+            newElement.style.background = '#e8f5e8';
+            newElement.style.border = '1px solid #4caf50';
+            newElement.style.borderRadius = '3px';
+            testArea.appendChild(newElement);
+        }
+
+        function removeElementFromMutation() {
+            const testArea = document.getElementById('mutation-test-area');
+            const elements = testArea.querySelectorAll('div');
+            if (elements.length > 0) {
+                const randomIndex = Math.floor(Math.random() * elements.length);
+                testArea.removeChild(elements[randomIndex]);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('start-setinterval').addEventListener('click', startSetInterval);
+        document.getElementById('stop-setinterval').addEventListener('click', stopSetInterval);
+        document.getElementById('start-dommodified').addEventListener('click', startDOMModified);
+        document.getElementById('stop-dommodified').addEventListener('click', stopDOMModified);
+        document.getElementById('start-mutation').addEventListener('click', startMutationObserver);
+        document.getElementById('stop-mutation').addEventListener('click', stopMutationObserver);
+
+        // Cleanup khi trang được đóng
+        window.addEventListener('beforeunload', function() {
+            if (setIntervalId) clearInterval(setIntervalId);
+            if (mutationObserver) mutationObserver.disconnect();
+        });
+    </script>
+</body>
+</html>

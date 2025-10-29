@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🚀 Performance Best Practices trong DOM Manipulation</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 28px; margin-bottom: 16px; }
+    h2 { font-size: 20px; margin-top: 20px; }
+    .tip { background: #f6f7f9; border: 1px solid #e5e7eb; padding: 12px 14px; border-radius: 8px; }
+    code, kbd { background: #f3f4f6; padding: 0 4px; border-radius: 4px; }
+    ul { margin: 8px 0 16px; padding-left: 20px; }
+    li { margin: 6px 0; }
+    /* Demo styles */
+    .demo { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin: 16px 0; background: #fff; }
+    .demo h3 { margin: 0 0 8px; font-size: 16px; }
+    .demo-controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    .demo-controls button { padding: 8px 10px; border: 1px solid #d1d5db; background: #f9fafb; border-radius: 8px; cursor: pointer; }
+    .demo-controls button:hover { background: #f3f4f6; }
+    .output { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: #0b1020; color: #e5e7eb; border-radius: 8px; padding: 10px; min-height: 40px; white-space: pre-wrap; }
+    .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+    .cell { height: 18px; border-radius: 3px; }
+    .cell.a { background: #bfdbfe; }
+    .cell.b { background: #fca5a5; }
+    .muted { color: #6b7280; font-size: 12px; }
+  </style>
+  <meta name="description" content="Các best practices về hiệu năng khi thao tác DOM: tối ưu query selector, dùng ID đúng cách, hiểu chi phí compile CSS selector, và kỹ thuật thêm/xóa DOM hiệu quả." />
+</head>
+<body>
+  <main class="container">
+    <h1>🚀 Performance Best Practices trong DOM Manipulation</h1>
+
+    <section>
+      <h2>1. Tối ưu query selector</h2>
+      <p>Selector càng phức tạp → càng tốn thời gian (do CSS selector phải compile).</p>
+      <p>Một query phức tạp có thể chỉ tốn vài ms, nhưng nếu lặp hàng trăm lần → cộng dồn gây chậm.</p>
+      <div class="tip">
+        <strong>Best practice:</strong> dùng selector đơn giản nhất có thể.
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Sử dụng ID đúng cách</h2>
+      <ul>
+        <li>ID không nên lạm dụng, nhưng có thể rất hữu ích khi DOM tree lớn (10,000+ elements).</li>
+        <li>Dùng ID để lấy <em>root</em> nhỏ hơn → sau đó query con từ node này → giảm chi phí tìm kiếm.</li>
+      </ul>
+      <div class="tip">
+        Ví dụ: <code>const root = document.getElementById('list-root')</code> rồi <code>root.querySelectorAll('.item')</code>.
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Framework (React, Angular, Vue)</h2>
+      <p>Khi dùng framework → tin cậy vào cơ chế DOM management của framework.</p>
+      <p>Chỉ nên tối ưu DOM API thủ công ở chỗ thật cần (ví dụ trong React <code>useEffect</code> khi cần query trực tiếp).</p>
+    </section>
+
+    <section>
+      <h2>4. Chi phí compile CSS selectors</h2>
+      <ul>
+        <li><strong>CSS file</strong>: compile một lần khi load page.</li>
+        <li><strong>Query Selector trong JS</strong>: compile mỗi lần chạy → bạn trả chi phí lặp đi lặp lại.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Thao tác thêm/xóa phần tử DOM</h2>
+      <p>Bất kỳ thay đổi DOM đều gây reflow → tốn hiệu năng.</p>
+      <ul>
+        <li><code>innerHTML</code>: parse lại toàn bộ HTML, gây reflow nặng → chỉ nên dùng 1 lần khi init.</li>
+        <li><code>insertAdjacentElement</code>: tốt hơn vì nhận sẵn compiled HTML element → ít tốn chi phí.
+          <ul>
+            <li><code>beforebegin</code>: trước target element.</li>
+            <li><code>afterbegin</code>: thành phần con đầu tiên.</li>
+            <li><code>beforeend</code>: thành phần con cuối cùng.</li>
+            <li><code>afterend</code>: sau target element.</li>
+          </ul>
+        </li>
+        <li><code>append()</code> / <code>appendChild()</code>: thêm element đã được tạo sẵn → hiệu quả hơn <code>innerHTML</code>.</li>
+        <li><code>remove()</code>: xoá element bằng reference.</li>
+        <li>Set <code>innerHTML = ""</code>: reset toàn bộ nội dung.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>👉 Kết luận ngắn gọn</h2>
+      <ul>
+        <li><strong>Query</strong>: dùng selector đơn giản, có thể dùng ID làm root để hạn chế phạm vi.</li>
+        <li><strong>DOM thay đổi</strong>: tránh lạm dụng <code>innerHTML</code>, ưu tiên <code>insertAdjacentElement</code> hoặc <code>append</code>.</li>
+        <li><strong>Framework</strong>: hầu hết đã tối ưu, chỉ cần can thiệp khi bắt buộc.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. Ví dụ minh hoạ (có thể chạy)</h2>
+
+      <div class="demo" id="demo-query">
+        <h3>A) Query selector: phức tạp vs. đơn giản, và dùng ID làm root</h3>
+        <p class="muted">Sinh dữ liệu giả lập 12,000 ô. Đo thời gian các kiểu query.</p>
+        <div class="demo-controls">
+          <button id="btn-build-query">Sinh dữ liệu</button>
+          <button id="btn-qsa-simple" disabled>querySelectorAll('.cell.a')</button>
+          <button id="btn-qsa-complex" disabled>querySelectorAll('#query-root .grid .cell.a')</button>
+          <button id="btn-scope-id" disabled>root.querySelectorAll('.cell.a')</button>
+          <button id="btn-gecls" disabled>getElementsByClassName('a')</button>
+          <button id="btn-clear-query" disabled>Xoá dữ liệu</button>
+        </div>
+        <div id="query-root" class="demo-canvas"></div>
+        <div class="output" id="out-query"></div>
+      </div>
+
+      <div class="demo" id="demo-dom">
+        <h3>B) Thêm nhiều phần tử: innerHTML vs. DocumentFragment.append vs. insertAdjacentElement</h3>
+        <p class="muted">Render 5,000 phần tử mỗi lượt. So sánh thời gian.</p>
+        <div class="demo-controls">
+          <button id="btn-innerhtml">innerHTML (1 lần)</button>
+          <button id="btn-fragment">DocumentFragment + append</button>
+          <button id="btn-insert-adjacent">insertAdjacentElement (vòng lặp)</button>
+          <button id="btn-clear-dom">Xoá</button>
+        </div>
+        <div id="dom-root" class="demo-canvas"></div>
+        <div class="output" id="out-dom"></div>
+      </div>
+
+      <div class="demo" id="demo-remove">
+        <h3>C) Xoá phần tử: remove() vs. innerHTML = ""</h3>
+        <div class="demo-controls">
+          <button id="btn-build-remove">Sinh 10,000 phần tử</button>
+          <button id="btn-remove-ref" disabled>remove() từng phần tử</button>
+          <button id="btn-remove-clear" disabled>innerHTML = ""</button>
+        </div>
+        <div id="remove-root" class="demo-canvas"></div>
+        <div class="output" id="out-remove"></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    // Utils
+    function time(label, fn) {
+      const start = performance.now();
+      const result = fn();
+      const end = performance.now();
+      return { label, ms: +(end - start).toFixed(2), result };
+    }
+
+    function logAppend(element, lines) {
+      const text = Array.isArray(lines) ? lines.join('\n') : String(lines);
+      element.textContent = (element.textContent ? element.textContent + '\n' : '') + text;
+    }
+
+    // A) Query selector demo
+    (function() {
+      const out = document.getElementById('out-query');
+      const root = document.getElementById('query-root');
+      const btnBuild = document.getElementById('btn-build-query');
+      const btnSimple = document.getElementById('btn-qsa-simple');
+      const btnComplex = document.getElementById('btn-qsa-complex');
+      const btnScope = document.getElementById('btn-scope-id');
+      const btnGECls = document.getElementById('btn-gecls');
+      const btnClear = document.getElementById('btn-clear-query');
+
+      function buildCells() {
+        // 12,000 cells: 2000 rows x 6 columns
+        const fragment = document.createDocumentFragment();
+        for (let r = 0; r < 2000; r++) {
+          const row = document.createElement('div');
+          row.className = 'grid';
+          for (let c = 0; c < 6; c++) {
+            const cell = document.createElement('div');
+            const isA = ((r + c) % 2) === 0;
+            cell.className = 'cell ' + (isA ? 'a' : 'b');
+            row.appendChild(cell);
+          }
+          fragment.appendChild(row);
+        }
+        root.appendChild(fragment);
+      }
+
+      btnBuild.addEventListener('click', () => {
+        out.textContent = '';
+        root.innerHTML = '';
+        const { ms } = time('build', buildCells);
+        logAppend(out, `Sinh dữ liệu: ${ms} ms`);
+        [btnSimple, btnComplex, btnScope, btnGECls, btnClear].forEach(b => b.disabled = false);
+      });
+
+      btnSimple.addEventListener('click', () => {
+        const { ms, result } = time("qsa('.cell.a')", () => root.ownerDocument.querySelectorAll('.cell.a').length);
+        logAppend(out, `querySelectorAll('.cell.a'): ${ms} ms (kết quả: ${result})`);
+      });
+
+      btnComplex.addEventListener('click', () => {
+        const { ms, result } = time("qsa('#query-root .grid .cell.a')", () => root.ownerDocument.querySelectorAll('#query-root .grid .cell.a').length);
+        logAppend(out, `'#query-root .grid .cell.a': ${ms} ms (kết quả: ${result})`);
+      });
+
+      btnScope.addEventListener('click', () => {
+        const { ms, result } = time("root.qsa('.cell.a')", () => root.querySelectorAll('.cell.a').length);
+        logAppend(out, `root.querySelectorAll('.cell.a'): ${ms} ms (kết quả: ${result})`);
+      });
+
+      btnGECls.addEventListener('click', () => {
+        const { ms, result } = time("getElementsByClassName('a')", () => root.getElementsByClassName('a').length);
+        logAppend(out, `getElementsByClassName('a'): ${ms} ms (kết quả: ${result})`);
+      });
+
+      btnClear.addEventListener('click', () => {
+        root.innerHTML = '';
+        logAppend(out, 'Đã xoá dữ liệu.');
+        [btnSimple, btnComplex, btnScope, btnGECls, btnClear].forEach(b => b.disabled = true);
+      });
+    })();
+
+    // B) DOM insert demo
+    (function() {
+      const COUNT = 5000;
+      const out = document.getElementById('out-dom');
+      const root = document.getElementById('dom-root');
+      const btnInner = document.getElementById('btn-innerhtml');
+      const btnFrag = document.getElementById('btn-fragment');
+      const btnInsert = document.getElementById('btn-insert-adjacent');
+      const btnClear = document.getElementById('btn-clear-dom');
+
+      function buildHTMLString(n) {
+        let html = '';
+        for (let i = 0; i < n; i++) {
+          html += '<div class="cell a"></div>';
+        }
+        return '<div class="grid">' + html + '</div>';
+      }
+
+      btnInner.addEventListener('click', () => {
+        root.innerHTML = '';
+        const { ms } = time('innerHTML', () => {
+          root.innerHTML = buildHTMLString(COUNT);
+        });
+        out.textContent = `innerHTML (một lần): ${ms} ms`;
+      });
+
+      btnFrag.addEventListener('click', () => {
+        root.innerHTML = '';
+        const { ms } = time('fragment', () => {
+          const fragment = document.createDocumentFragment();
+          const grid = document.createElement('div');
+          grid.className = 'grid';
+          for (let i = 0; i < COUNT; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell a';
+            grid.appendChild(cell);
+          }
+          fragment.appendChild(grid);
+          root.appendChild(fragment);
+        });
+        out.textContent = `DocumentFragment + append: ${ms} ms`;
+      });
+
+      btnInsert.addEventListener('click', () => {
+        root.innerHTML = '';
+        const { ms } = time('insertAdjacentElement', () => {
+          const grid = document.createElement('div');
+          grid.className = 'grid';
+          root.appendChild(grid);
+          for (let i = 0; i < COUNT; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell a';
+            grid.insertAdjacentElement('beforeend', cell);
+          }
+        });
+        out.textContent = `insertAdjacentElement (vòng lặp): ${ms} ms`;
+      });
+
+      btnClear.addEventListener('click', () => {
+        root.innerHTML = '';
+        out.textContent = 'Đã xoá.';
+      });
+    })();
+
+    // C) Remove demo
+    (function() {
+      const out = document.getElementById('out-remove');
+      const root = document.getElementById('remove-root');
+      const btnBuild = document.getElementById('btn-build-remove');
+      const btnRemoveRef = document.getElementById('btn-remove-ref');
+      const btnRemoveClear = document.getElementById('btn-remove-clear');
+
+      function build(n) {
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < n; i++) {
+          const el = document.createElement('div');
+          el.className = 'cell b';
+          fragment.appendChild(el);
+        }
+        root.appendChild(fragment);
+      }
+
+      btnBuild.addEventListener('click', () => {
+        out.textContent = '';
+        root.innerHTML = '';
+        const { ms } = time('build-10k', () => build(10000));
+        out.textContent = `Sinh 10,000 phần tử: ${ms} ms`;
+        btnRemoveRef.disabled = false;
+        btnRemoveClear.disabled = false;
+      });
+
+      btnRemoveRef.addEventListener('click', () => {
+        const nodes = Array.from(root.children);
+        const { ms } = time('remove()', () => {
+          for (const n of nodes) n.remove();
+        });
+        out.textContent = `remove() từng phần tử: ${ms} ms`;
+        btnRemoveRef.disabled = true;
+        btnRemoveClear.disabled = true;
+      });
+
+      btnRemoveClear.addEventListener('click', () => {
+        const { ms } = time('innerHTML=""', () => { root.innerHTML = ''; });
+        out.textContent = `innerHTML = "": ${ms} ms`;
+        btnRemoveRef.disabled = true;
+        btnRemoveClear.disabled = true;
+      });
+    })();
+  </script>
+</body>
+</html>
+
+

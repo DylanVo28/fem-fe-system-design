@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Rendering – Part 2: DOM → Formatting → Layers</title>
+    <link rel="stylesheet" href="rendering-part2.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <h1>Browser Rendering – Part 2</h1>
+            <p class="subtitle">Từ <code>DOM</code> → <code>RenderObject</code> → <code>RenderLayer</code> → <code>GraphicLayer</code></p>
+            <p class="micro-summary">Formatting context quyết định layout (block, flex, inline). Stacking context quyết định thứ tự vẽ. GraphicLayer chỉ xuất hiện khi có tăng tốc GPU (3D, video...).</p>
+        </header>
+
+        <section class="controls">
+            <div class="stepper">
+                <button id="prevBtn" class="btn" aria-label="Previous step">◀ Trước</button>
+                <div class="step-indicator">
+                    <span id="stepLabel">Bước 1/7</span>
+                </div>
+                <button id="nextBtn" class="btn primary" aria-label="Next step">Tiếp ▶</button>
+            </div>
+            <div class="quick-steps">
+                <button data-step="1" class="chip">1</button>
+                <button data-step="2" class="chip">2</button>
+                <button data-step="3" class="chip">3</button>
+                <button data-step="4" class="chip">4</button>
+                <button data-step="5" class="chip">5</button>
+                <button data-step="6" class="chip">6</button>
+                <button data-step="7" class="chip">7</button>
+            </div>
+        </section>
+
+        <main class="stage-and-explain">
+            <section class="stage">
+                <div class="legend">
+                    <span class="legend-item fc">Formatting Context</span>
+                    <span class="legend-item sc">Stacking Context</span>
+                    <span class="legend-item rl">RenderLayer</span>
+                    <span class="legend-item gl">GraphicLayer (GPU)</span>
+                </div>
+
+                <div class="canvas" id="canvas">
+                    <div class="node html" data-node="html">
+                        <span class="label">&lt;html&gt;</span>
+                        <div class="node body" data-node="body">
+                            <span class="label">&lt;body&gt;</span>
+
+                            <div class="node section flex" data-node="section-flex">
+                                <span class="label">&lt;section style="display:flex"&gt;</span>
+                                <div class="flex-item block" data-node="flex-item-1">div.flex-item</div>
+                                <div class="flex-item block" data-node="flex-item-2">div.flex-item</div>
+                                <div class="flex-item block" data-node="flex-item-3">div.flex-item</div>
+                            </div>
+
+                            <span class="inline-text" data-node="span-abs">&lt;span style="position:absolute"&gt;Text&lt;/span&gt;</span>
+
+                            <div class="inline-block" data-node="div-inline-block">div with display:inline-block</div>
+
+                            <div class="abs-3d" data-node="div-abs-3d">absolute + 3D transform</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="explain">
+                <h2 id="explainTitle">1) Khởi tạo ban đầu (render &lt;html&gt;)</h2>
+                <ul id="explainBullets" class="bullets">
+                    <li>DOM tree cập nhật.</li>
+                    <li>RenderObject tạo tương ứng.</li>
+                    <li>Tạo root RenderLayer và root GraphicLayer.</li>
+                    <li>Mặc định có stacking context và block formatting context.</li>
+                </ul>
+
+                <div class="notes">
+                    <h3>Tóm tắt cực ngắn</h3>
+                    <p><strong>DOM → RenderObject → RenderLayer → GraphicLayer</strong></p>
+                    <p><strong>Formatting context</strong> (block, flex, inline) quyết định layout.</p>
+                    <p><strong>Stacking context</strong> quyết định thứ tự vẽ (z-index, absolute, 3D...).</p>
+                    <p><strong>GraphicLayer</strong> chỉ tạo khi có GPU acceleration (3D, video...)</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="help">
+            <p>Gợi ý: dùng các nút 1–7 để nhảy nhanh giữa các bước và quan sát badge RL/GL/SC/FC.</p>
+        </footer>
+    </div>
+
+    <script defer src="rendering-part2.js"></script>
+</body>
+</html> 

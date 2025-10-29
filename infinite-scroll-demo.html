@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intersection Observer - Infinite Scroll Demo</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121822;
+      --card: #172234;
+      --text: #e6edf3;
+      --muted: #9fb0c0;
+      --accent: #4cc2ff;
+      --border: #243245;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 10% -10%, #102038, transparent 60%),
+                  radial-gradient(900px 700px at 110% 10%, #0f2f3f, transparent 50%),
+                  var(--bg);
+      min-height: 100vh;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(11, 15, 20, 0.7);
+      backdrop-filter: saturate(140%) blur(6px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin: 0 0 4px 0;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(71, 129, 181, 0.06), rgba(23, 34, 52, 0.7)), var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+      will-change: transform;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: #2f4461;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.34);
+    }
+
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      font-weight: 650;
+      color: var(--text);
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    #bottom-observer {
+      height: 40px;
+      margin: 8px 16px 32px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      background: linear-gradient(180deg, rgba(76, 194, 255, 0.05), transparent);
+    }
+
+    .loading-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      opacity: 0.6;
+      animation: blink 1.2s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Intersection Observer: Infinite Scroll</h1>
+      <p class="subtitle">Khi phần tử đáy xuất hiện ≥20% trong viewport → tải thêm dữ liệu</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="list" aria-live="polite"></div>
+    <div id="bottom-observer">
+      <div class="loading-row">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>Đang chờ cuộn...</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // MockDB: mô phỏng API phân trang đơn giản
+    const MockDB = (() => {
+      const PAGE_SIZE = 12;
+      function generateItem(index) {
+        const id = index + 1;
+        return {
+          title: `Card #${id}`,
+          body: `Nội dung mô phỏng cho card số ${id}. Đây là đoạn text ngắn để thử hiệu ứng infinite scroll.`
+        };
+      }
+      return {
+        getPage(page) {
+          return new Promise(resolve => {
+            const start = (page - 1) * PAGE_SIZE;
+            const items = Array.from({ length: PAGE_SIZE }, (_, i) => generateItem(start + i));
+            // Mô phỏng độ trễ mạng
+            setTimeout(() => resolve(items), 450);
+          });
+        }
+      };
+    })();
+
+    // Tạo thẻ hiển thị 1 item
+    function createCard(title, body) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const h3 = document.createElement('h3');
+      h3.textContent = title;
+      const p = document.createElement('p');
+      p.textContent = body;
+      card.appendChild(h3);
+      card.appendChild(p);
+      return card;
+    }
+
+    const listEl = document.getElementById('list');
+    const observerEl = document.getElementById('bottom-observer');
+
+    let page = 1;
+    let isLoading = false;
+
+    async function loadNextPage() {
+      if (isLoading) return;
+      isLoading = true;
+
+      const data = await MockDB.getPage(page);
+      const fragment = document.createDocumentFragment();
+      for (const item of data) {
+        fragment.appendChild(createCard(item.title, item.body));
+      }
+      listEl.appendChild(fragment);
+      page += 1;
+      isLoading = false;
+    }
+
+    // Khởi tạo IntersectionObserver với threshold 0.2
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          // Đã chạm đáy ≥20% → tải thêm
+          loadNextPage();
+        }
+      }
+    }, {
+      threshold: 0.2
+    });
+
+    // Tải trang đầu và bắt đầu quan sát
+    (async function init() {
+      await loadNextPage();
+      observer.observe(observerEl);
+    })();
+  </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Positioning System & Normal Flow Demo</title>
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <link rel="stylesheet" href="positioning-styles.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Browser Positioning System & Normal Flow</h1>
+            <p class="subtitle">Demo tương tác để hiểu rõ các khái niệm CSS Positioning</p>
+        </header>
+
+        <!-- Normal Flow Section -->
+        <section class="demo-section">
+            <h2>1. Normal Flow (Mặc định)</h2>
+            <div class="explanation">
+                <p><strong>LTR (Left-to-Right):</strong> Trên → dưới, trái → phải</p>
+                <p><strong>RTL (Right-to-Left):</strong> Phải → trái (tiếng Ả Rập/Hebrew)</p>
+            </div>
+            
+            <div class="demo-container">
+                <h3>Ví dụ Normal Flow (LTR):</h3>
+                <div class="normal-flow-demo">
+                    <div class="box static-box">Box 1 (static)</div>
+                    <div class="box static-box">Box 2 (static)</div>
+                    <div class="box static-box">Box 3 (static)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Position Static Section -->
+        <section class="demo-section">
+            <h2>2. position: static (Mặc định)</h2>
+            <div class="explanation">
+                <p>Element tuân theo normal flow, không thể dịch chuyển bằng top/right/bottom/left</p>
+            </div>
+            
+            <div class="demo-container">
+                <div class="static-demo">
+                    <div class="box static-box">Static Box 1</div>
+                    <div class="box static-box">Static Box 2</div>
+                    <div class="box static-box">Static Box 3</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Position Relative Section -->
+        <section class="demo-section">
+            <h2>3. position: relative</h2>
+            <div class="explanation">
+                <p>• Render giống normal flow, nhưng có thể dịch chuyển bằng top/right/bottom/left</p>
+                <p>• Không ảnh hưởng tới các element khác → bị "loại bỏ" khỏi normal flow</p>
+                <p>• Tạo Stacking Context mới</p>
+                <p>• Có thể biến element thành containing block cho con</p>
+            </div>
+            
+            <div class="demo-container">
+                <h3>Ví dụ Relative Positioning:</h3>
+                <div class="relative-demo">
+                    <div class="box static-box">Box 1 (static)</div>
+                    <div class="box relative-box">Box 2 (relative + top: 20px, left: 30px)</div>
+                    <div class="box static-box">Box 3 (static)</div>
+                </div>
+                
+                <h3>Containing Block cho con:</h3>
+                <div class="relative-container">
+                    <div class="box relative-box">Parent (relative)</div>
+                    <div class="box absolute-child">Child (absolute)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Position Absolute Section -->
+        <section class="demo-section">
+            <h2>4. position: absolute</h2>
+            <div class="explanation">
+                <p>• Element loại bỏ khỏi normal flow</p>
+                <p>• Luôn dùng containing block gần nhất để tính vị trí</p>
+                <p>• Nếu không có ancestor có positioning → fallback về viewport (html)</p>
+                <p>• Mặc định render ở top-left của containing block</p>
+                <p>• Tạo Stacking Context riêng</p>
+            </div>
+            
+            <div class="demo-container">
+                <h3>Absolute trong viewport:</h3>
+                <div class="absolute-demo">
+                    <div class="box static-box">Box 1 (static)</div>
+                    <div class="box static-box">Box 2 (static)</div>
+                    <div class="box absolute-box">Box 3 (absolute)</div>
+                </div>
+                
+                <h3>Absolute trong containing block:</h3>
+                <div class="absolute-container">
+                    <div class="box static-box">Box 1 (static)</div>
+                    <div class="box relative-parent">Parent (relative)
+                        <div class="box absolute-box">Child (absolute)</div>
+                    </div>
+                    <div class="box static-box">Box 3 (static)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stacking Context & Z-axis Section -->
+        <section class="demo-section">
+            <h2>5. Stacking Context & Z-axis</h2>
+            <div class="explanation">
+                <p>• Stacking Context = "realm tách biệt" cho layering</p>
+                <p>• Các element bên trong context không ảnh hưởng context ngoài</p>
+                <p>• Z-axis dùng để xếp chồng element</p>
+                <p>• Quan trọng cho tối ưu hiệu năng: giảm reflow</p>
+            </div>
+            
+            <div class="demo-container">
+                <h3>Z-index Layering:</h3>
+                <div class="z-index-demo">
+                    <div class="box z-box z-1">Z-index: 1</div>
+                    <div class="box z-box z-2">Z-index: 2</div>
+                    <div class="box z-box z-3">Z-index: 3</div>
+                </div>
+                
+                <h3>Stacking Context Demo:</h3>
+                <div class="stacking-context-demo">
+                    <div class="box context-parent">
+                        Parent Context (z-index: 1)
+                        <div class="box context-child-high">Child (z-index: 999)</div>
+                    </div>
+                    <div class="box context-sibling">Sibling (z-index: 2)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Controls -->
+        <section class="demo-section">
+            <h2>6. Tương tác</h2>
+            <div class="interactive-demo">
+                <h3>Thay đổi Z-index:</h3>
+                <div class="controls">
+                    <label>Box A z-index: <input type="number" id="zIndexA" value="1" min="-10" max="10"></label>
+                    <label>Box B z-index: <input type="number" id="zIndexB" value="2" min="-10" max="10"></label>
+                    <label>Box C z-index: <input type="number" id="zIndexC" value="3" min="-10" max="10"></label>
+                </div>
+                <div class="interactive-boxes">
+                    <div class="box interactive-box" id="boxA">Box A</div>
+                    <div class="box interactive-box" id="boxB">Box B</div>
+                    <div class="box interactive-box" id="boxC">Box C</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="demo-section summary">
+            <h2>📝 Tóm tắt</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <h3>static</h3>
+                    <p>Mặc định, theo normal flow</p>
+                </div>
+                <div class="summary-item">
+                    <h3>relative</h3>
+                    <p>Dịch chuyển mà không phá flow của phần tử khác, tạo stacking context</p>
+                </div>
+                <div class="summary-item">
+                    <h3>absolute</h3>
+                    <p>Thoát khỏi flow, định vị theo containing block gần nhất, tạo stacking context mới, chồng theo z-axis</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Interactive z-index controls
+        document.getElementById('zIndexA').addEventListener('input', function() {
+            document.getElementById('boxA').style.zIndex = this.value;
+        });
+        
+        document.getElementById('zIndexB').addEventListener('input', function() {
+            document.getElementById('boxB').style.zIndex = this.value;
+        });
+        
+        document.getElementById('zIndexC').addEventListener('input', function() {
+            document.getElementById('boxC').style.zIndex = this.value;
+        });
+    </script>
+</body>
+</html>

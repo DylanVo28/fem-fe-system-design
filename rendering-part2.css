@@ -1,0 +1,74 @@
+/* Base */
+* { box-sizing: border-box; }
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%);
+    color: #1f2937;
+    margin: 0;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.hero { background: rgba(255,255,255,0.95); padding: 32px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+.hero h1 { margin: 0 0 8px; font-size: 32px; background: linear-gradient(135deg,#0ea5e9,#7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle, .micro-summary { color: #4b5563; }
+.controls { margin: 16px 0 24px; background: rgba(255,255,255,0.9); padding: 16px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.stepper { display: flex; align-items: center; gap: 12px; }
+.btn { padding: 10px 14px; border-radius: 10px; background: #e5e7eb; border: none; cursor: pointer; }
+.btn.primary { background: #7c3aed; color: white; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.step-indicator { flex: 1; text-align: center; font-weight: 600; color: #374151; }
+.quick-steps { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { padding: 6px 10px; border-radius: 999px; border: 1px solid #e5e7eb; background: white; cursor: pointer; }
+
+.stage-and-explain { display: grid; grid-template-columns: 1.2fr .8fr; gap: 20px; }
+.stage, .explain { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+.legend { display: flex; gap: 8px; margin-bottom: 8px; }
+.legend-item { font-size: 12px; padding: 4px 8px; border-radius: 999px; background: #f3f4f6; border: 1px solid #e5e7eb; }
+.legend-item.fc { border-color: #2563eb; color: #2563eb; }
+.legend-item.sc { border-color: #16a34a; color: #16a34a; }
+.legend-item.rl { border-color: #d97706; color: #d97706; }
+.legend-item.gl { border-color: #dc2626; color: #dc2626; }
+
+.canvas { position: relative; height: 520px; background: #f8fafc; border: 2px dashed #e5e7eb; border-radius: 12px; padding: 16px; overflow: hidden; }
+.label { font-size: 12px; color: #6b7280; background: #eef2ff; border: 1px solid #c7d2fe; padding: 2px 6px; border-radius: 6px; }
+
+/* Node boxes */
+.node { position: relative; border-radius: 10px; border: 2px solid #cbd5e1; padding: 12px; background: white; }
+.node.html { height: 100%; }
+.node.body { margin-top: 12px; height: calc(100% - 40px); }
+
+/* Flex section */
+.section.flex { margin-top: 12px; border-style: dashed; background: #f0f9ff; border-color: #93c5fd; }
+.section.flex .flex-item { display: inline-flex; align-items: center; justify-content: center; height: 44px; margin: 8px; padding: 0 12px; border-radius: 8px; background: linear-gradient(135deg,#3b82f6,#2563eb); color: white; }
+
+/* Absolute span */
+.inline-text[data-node="span-abs"] { position: absolute; top: 160px; left: 60px; background: #fef3c7; border: 2px solid #f59e0b; padding: 6px 10px; border-radius: 8px; }
+
+/* Inline-block */
+.inline-block { display: inline-block; margin-top: 12px; padding: 10px 12px; border: 2px solid #22c55e; background: #ecfdf5; border-radius: 8px; }
+
+/* Absolute 3D transform */
+.abs-3d { position: absolute; right: 24px; bottom: 24px; padding: 12px 14px; background: #fee2e2; border: 2px solid #ef4444; border-radius: 10px; transform: translateZ(0) rotateY(12deg); transform-style: preserve-3d; }
+
+/* Badges for contexts/layers */
+.badge { position: absolute; top: -10px; right: -10px; font-size: 10px; padding: 4px 6px; border-radius: 999px; background: #111827; color: white; box-shadow: 0 4px 10px rgba(0,0,0,.15); }
+.badge.fc { background: #2563eb; }
+.badge.sc { background: #16a34a; }
+.badge.rl { background: #d97706; }
+.badge.gl { background: #dc2626; }
+
+/* Highlight states per step */
+[data-active="false"] { opacity: .35; filter: grayscale(0.2); }
+[data-highlight="true"] { box-shadow: 0 0 0 4px rgba(59,130,246,.35), 0 10px 30px rgba(0,0,0,.15); }
+
+.explain h2 { margin-top: 0; }
+.bullets { padding-left: 18px; }
+.bullets li { margin: 6px 0; }
+.notes { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e5e7eb; color: #4b5563; font-size: 14px; }
+
+.help { margin-top: 20px; color: #374151; background: rgba(255,255,255,0.9); padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+
+/* Responsive */
+@media (max-width: 900px) {
+    .stage-and-explain { grid-template-columns: 1fr; }
+    .canvas { height: 460px; }
+} 

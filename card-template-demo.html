@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Card Component với &lt;template&gt;</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; margin: 24px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); background: #fff; }
+    .card_title { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: #111827; }
+    .card_body_content { margin: 0; font-size: 14px; color: #374151; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h2>Demo: Tạo Card Component bằng &lt;template&gt;</h2>
+
+  <!-- Template chỉ nằm trong memory, không render vào DOM tree -->
+  <template id="card-template">
+    <article class="card">
+      <h3 class="card_title"></h3>
+      <p class="card_body_content"></p>
+    </article>
+  </template>
+
+  <section id="cards" class="cards" aria-live="polite"></section>
+
+  <script>
+    const cardTemplate = document.getElementById('card-template');
+    const cardsContainer = document.getElementById('cards');
+
+    function createCardComponent(title, body) {
+      const fragment = cardTemplate.content.cloneNode(true);
+      const article = fragment.firstElementChild;
+      article.querySelector('.card_title').textContent = title;
+      article.querySelector('.card_body_content').textContent = body;
+      return article;
+    }
+
+    // Ví dụ sử dụng: cập nhật trên fragment (memory) → không reflow
+    const card1 = createCardComponent('Card #1', 'Nội dung body của card số 1.');
+    const card2 = createCardComponent('Card #2', 'Nội dung body của card số 2, dài hơn một chút.');
+    const card3 = createCardComponent('Card #3', 'Nội dung body của card số 3.');
+
+    // Chỉ khi append vào DOM thật mới tính toán layout/reflow
+    const batch = document.createDocumentFragment();
+    batch.appendChild(card1);
+    batch.appendChild(card2);
+    batch.appendChild(card3);
+    cardsContainer.appendChild(batch);
+
+    // Giải pháp thay thế (ít tốt hơn): innerHTML với string template
+    // cardsContainer.innerHTML += `
+    //   <article class="card">
+    //     <h3 class="card_title">Card (innerHTML)</h3>
+    //     <p class="card_body_content">Cách này kém hiệu quả và khó tái sử dụng.</p>
+    //   </article>
+    // `;
+  </script>
+</body>
+</html>
+
+

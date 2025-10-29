@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU Rendering Demo - Browser Rendering Pipeline</title>
+    <link rel="stylesheet" href="gpu-rendering-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 GPU Rendering trong Browser</h1>
+            <p class="subtitle">Tìm hiểu cách Browser sử dụng GPU để tối ưu hóa rendering</p>
+        </header>
+
+        <!-- CPU vs GPU Section -->
+        <section class="demo-section">
+            <h2>1. CPU vs GPU Rendering</h2>
+            <div class="comparison-container">
+                <div class="comparison-item old-browser">
+                    <h3>Trình duyệt cũ (CPU only)</h3>
+                    <div class="performance-meter">
+                        <div class="meter-bar cpu-heavy"></div>
+                        <span class="meter-label">Chậm - Chỉ dùng CPU</span>
+                    </div>
+                    <div class="demo-box cpu-demo">
+                        <div class="animated-element cpu-animation">CPU Animation</div>
+                    </div>
+                </div>
+                <div class="comparison-item new-browser">
+                    <h3>Trình duyệt mới (CPU + GPU)</h3>
+                    <div class="performance-meter">
+                        <div class="meter-bar gpu-optimized"></div>
+                        <span class="meter-label">Nhanh - CPU + GPU song song</span>
+                    </div>
+                    <div class="demo-box gpu-demo">
+                        <div class="animated-element gpu-animation">GPU Animation</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Render Tree & Render Object Section -->
+        <section class="demo-section">
+            <h2>2. Render Tree & Render Object</h2>
+            <div class="tree-demo">
+                <div class="tree-container">
+                    <div class="dom-tree">
+                        <h3>DOM Tree</h3>
+                        <div class="tree-node root">html
+                            <div class="tree-node">head
+                                <div class="tree-node">title</div>
+                            </div>
+                            <div class="tree-node">body
+                                <div class="tree-node">div.container
+                                    <div class="tree-node">h1</div>
+                                    <div class="tree-node">p</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="render-tree">
+                        <h3>Render Tree</h3>
+                        <div class="render-objects">
+                            <div class="render-object">RenderObject(html)</div>
+                            <div class="render-object">RenderObject(body)</div>
+                            <div class="render-object">RenderObject(div.container)</div>
+                            <div class="render-object">RenderObject(h1)</div>
+                            <div class="render-object">RenderObject(p)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="explanation">
+                    <p><strong>DOM:</strong> Lưu thông tin HTML structure</p>
+                    <p><strong>Render Object:</strong> Biết cách vẽ lên bitmap</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Render Layer Section -->
+        <section class="demo-section">
+            <h2>3. Render Layer Creation</h2>
+            <div class="layer-demo">
+                <h3>Render Layer được tạo khi:</h3>
+                <div class="layer-conditions">
+                    <div class="condition-item">
+                        <h4>Root element</h4>
+                        <div class="demo-element root-layer">Root Layer</div>
+                    </div>
+                    <div class="condition-item">
+                        <h4>position: relative/absolute</h4>
+                        <div class="demo-element relative-layer">Relative Layer</div>
+                        <div class="demo-element absolute-layer">Absolute Layer</div>
+                    </div>
+                    <div class="condition-item">
+                        <h4>Canvas, CSS filters</h4>
+                        <canvas class="demo-element canvas-layer" width="100" height="50"></canvas>
+                        <div class="demo-element filter-layer">Filter Layer</div>
+                    </div>
+                </div>
+                <div class="layer-stack">
+                    <h4>Layer Stack (Stacking Context)</h4>
+                    <div class="stack-visualization">
+                        <div class="stack-layer" style="z-index: 3">Layer 3 (z-index: 3)</div>
+                        <div class="stack-layer" style="z-index: 2">Layer 2 (z-index: 2)</div>
+                        <div class="stack-layer" style="z-index: 1">Layer 1 (z-index: 1)</div>
+                        <div class="stack-layer" style="z-index: 0">Root Layer (z-index: 0)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Graphic Layer Section -->
+        <section class="demo-section">
+            <h2>4. Graphic Layer (GPU Layer)</h2>
+            <div class="graphic-layer-demo">
+                <h3>Graphic Layer được tạo khi có:</h3>
+                <div class="gpu-conditions">
+                    <div class="condition-item">
+                        <h4>3D Transform</h4>
+                        <div class="demo-element transform-3d">3D Transform</div>
+                    </div>
+                    <div class="condition-item">
+                        <h4>Video Element</h4>
+                        <video class="demo-element video-layer" width="100" height="50" muted>
+                            <source src="data:video/mp4;base64," type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="condition-item">
+                        <h4>GPU Decoding</h4>
+                        <div class="demo-element gpu-decode">GPU Decode</div>
+                    </div>
+                </div>
+                
+                <div class="vram-cost">
+                    <h3>Chi phí VRAM</h3>
+                    <div class="cost-calculator">
+                        <div class="cost-item">
+                            <span>Root Graphic Layer:</span>
+                            <span class="cost">~8.7MB</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Mỗi layer thêm:</span>
+                            <span class="cost">~0.5MB</span>
+                        </div>
+                        <div class="cost-item total">
+                            <span>100 layers:</span>
+                            <span class="cost">~58.7MB VRAM</span>
+                        </div>
+                    </div>
+                    <div class="vram-warning">
+                        ⚠️ Trên mobile (ít VRAM) → dễ gây lag
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Comparison Section -->
+        <section class="demo-section">
+            <h2>5. So sánh Hiệu suất</h2>
+            <div class="performance-demo">
+                <div class="performance-test">
+                    <h3>CPU Heavy (Reflow/Layout)</h3>
+                    <button id="reflow-test" class="test-button">Test Reflow</button>
+                    <div class="test-container">
+                        <div class="test-element reflow-element">Resize me</div>
+                    </div>
+                    <div class="performance-indicator">
+                        <span class="fps-counter">FPS: <span id="reflow-fps">60</span></span>
+                        <div class="frame-drops">Frame drops: <span id="reflow-drops">0</span></div>
+                    </div>
+                </div>
+                
+                <div class="performance-test">
+                    <h3>GPU Optimized (Transform/Opacity)</h3>
+                    <button id="gpu-test" class="test-button">Test GPU</button>
+                    <div class="test-container">
+                        <div class="test-element gpu-element">Transform me</div>
+                    </div>
+                    <div class="performance-indicator">
+                        <span class="fps-counter">FPS: <span id="gpu-fps">60</span></span>
+                        <div class="frame-drops">Frame drops: <span id="gpu-drops">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CSS Triggers Demo -->
+        <section class="demo-section">
+            <h2>6. CSS Properties Impact</h2>
+            <div class="css-triggers-demo">
+                <div class="property-category bad">
+                    <h3>❌ Gây Reflow (CPU Heavy)</h3>
+                    <div class="property-list">
+                        <button class="property-btn" data-property="width">width</button>
+                        <button class="property-btn" data-property="height">height</button>
+                        <button class="property-btn" data-property="margin">margin</button>
+                        <button class="property-btn" data-property="padding">padding</button>
+                        <button class="property-btn" data-property="left">left</button>
+                        <button class="property-btn" data-property="top">top</button>
+                    </div>
+                </div>
+                
+                <div class="property-category good">
+                    <h3>✅ GPU Friendly</h3>
+                    <div class="property-list">
+                        <button class="property-btn" data-property="transform">transform</button>
+                        <button class="property-btn" data-property="opacity">opacity</button>
+                        <button class="property-btn" data-property="filter">filter</button>
+                        <button class="property-btn" data-property="backdrop-filter">backdrop-filter</button>
+                    </div>
+                </div>
+                
+                <div class="demo-element" id="css-test-element">Test Element</div>
+            </div>
+        </section>
+
+        <!-- Rule of Thumb Section -->
+        <section class="demo-section">
+            <h2>7. Rule of Thumb</h2>
+            <div class="rules-container">
+                <div class="rule-item">
+                    <h3>🎯 Ưu tiên GPU</h3>
+                    <ul>
+                        <li>transform: translateX(), scale(), rotate()</li>
+                        <li>opacity: 0 → 1</li>
+                        <li>filter: blur(), brightness()</li>
+                    </ul>
+                </div>
+                <div class="rule-item">
+                    <h3>⚠️ Tránh Reflow</h3>
+                    <ul>
+                        <li>Thay đổi width, height</li>
+                        <li>Thay đổi margin, padding</li>
+                        <li>Thay đổi position (static → relative)</li>
+                    </ul>
+                </div>
+                <div class="rule-item">
+                    <h3>📊 Kiểm tra Performance</h3>
+                    <ul>
+                        <li>Sử dụng DevTools Performance tab</li>
+                        <li>Kiểm tra csstriggers.com</li>
+                        <li>Monitor FPS và frame drops</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="demo-section summary">
+            <h2>📝 Tóm tắt</h2>
+            <div class="summary-content">
+                <div class="summary-item">
+                    <h3>Pipeline</h3>
+                    <p>DOM → Render Object → Render Layer → Graphic Layer</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Nguyên tắc</h3>
+                    <p>Tránh reflow, ưu tiên GPU-friendly properties</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Cân nhắc</h3>
+                    <p>Graphic Layer giúp animation mượt nhưng tốn VRAM</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="gpu-rendering-script.js"></script>
+</body>
+</html>
